@@ -11,5 +11,5 @@ Disallow: /fonts/
 Disallow: /vendors/
 Disallow: /fancybox/
 
-Sitemap: https://badblank.github.io/sitemap.xml
-Sitemap: https://badblank.github.io/baidusitemap.xml
+Sitemap: https://blog.beere.cn/sitemap.xml
+Sitemap: https://blog.beere.cn/baidusitemap.xml
