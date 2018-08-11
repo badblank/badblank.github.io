@@ -4,6 +4,40 @@
 
     
   <url>
+    <loc>http://blog.beere.cn/redis1.html</loc>
+    <lastmod>2018-08-11T07:10:49.489Z</lastmod>
+    <data>
+        <display>
+        <title>关于Redis</title>
+        <pubTime>2018-08-11T07:10:12.000Z</pubTime>
+        
+        <tag>Redis</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.beere.cn/mysql-part1.html</loc>
+    <lastmod>2018-08-10T10:54:15.086Z</lastmod>
+    <data>
+        <display>
+        <title>MySQL架构与历史</title>
+        <pubTime>2018-08-09T13:06:05.000Z</pubTime>
+        
+        <tag>高性能mysql</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.beere.cn/gantt.html</loc>
     <lastmod>2018-08-08T05:26:33.527Z</lastmod>
     <data>
