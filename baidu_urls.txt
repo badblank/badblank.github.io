@@ -1,3 +1,3 @@
+http://blog.beere.cn/mysql-part3.html
+http://blog.beere.cn/mysql-part2.html
 http://blog.beere.cn/redis1.html
-http://blog.beere.cn/mysql-part1.html
-http://blog.beere.cn/gantt.html

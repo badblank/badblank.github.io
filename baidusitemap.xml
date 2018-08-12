@@ -5,13 +5,47 @@
     
   <url>
     <loc>http://blog.beere.cn/mysql-part1.html</loc>
-    <lastmod>2018-08-12T08:37:05.679Z</lastmod>
+    <lastmod>2018-08-12T11:42:54.428Z</lastmod>
     <data>
         <display>
         <title>MySQL架构与历史</title>
         <pubTime>2018-08-09T13:06:05.000Z</pubTime>
         
         <tag>高性能mysql</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.beere.cn/mysql-part3.html</loc>
+    <lastmod>2018-08-12T10:59:12.506Z</lastmod>
+    <data>
+        <display>
+        <title>服务器性能剖析</title>
+        <pubTime>2018-08-12T10:42:56.000Z</pubTime>
+        
+        <tag>高性能MySQL</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.beere.cn/mysql-part2.html</loc>
+    <lastmod>2018-08-12T10:40:17.978Z</lastmod>
+    <data>
+        <display>
+        <title>MySQL基准测试</title>
+        <pubTime>2018-08-12T10:24:48.000Z</pubTime>
+        
+        <tag>高性能MySQL</tag>
          
          
            
