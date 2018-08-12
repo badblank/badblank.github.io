@@ -4,14 +4,14 @@
 
     
   <url>
-    <loc>http://blog.beere.cn/mysql-part1.html</loc>
-    <lastmod>2018-08-12T11:42:54.428Z</lastmod>
+    <loc>http://blog.beere.cn/mysql-part3.html</loc>
+    <lastmod>2018-08-12T12:20:43.558Z</lastmod>
     <data>
         <display>
-        <title>MySQL架构与历史</title>
-        <pubTime>2018-08-09T13:06:05.000Z</pubTime>
+        <title>服务器性能剖析</title>
+        <pubTime>2018-08-12T10:42:56.000Z</pubTime>
         
-        <tag>高性能mysql</tag>
+        <tag>高性能MySQL</tag>
          
          
            
@@ -21,14 +21,14 @@
 
     
   <url>
-    <loc>http://blog.beere.cn/mysql-part3.html</loc>
-    <lastmod>2018-08-12T10:59:12.506Z</lastmod>
+    <loc>http://blog.beere.cn/mysql-part1.html</loc>
+    <lastmod>2018-08-12T11:42:54.428Z</lastmod>
     <data>
         <display>
-        <title>服务器性能剖析</title>
-        <pubTime>2018-08-12T10:42:56.000Z</pubTime>
+        <title>MySQL架构与历史</title>
+        <pubTime>2018-08-09T13:06:05.000Z</pubTime>
         
-        <tag>高性能MySQL</tag>
+        <tag>高性能mysql</tag>
          
          
            
