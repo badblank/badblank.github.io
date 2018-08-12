@@ -7,5 +7,70 @@
 <p> 客户端连接时，mysql服务器会进行登陆验证，验证完毕后还有继续验证用户具备哪些权限（如对每个表的读、写权限等）。</p>
 <p>3、优化与执行</p>
 <p>  mysql会解析查询语句，并且创建内部数据结构，对其进行优化，包括重写查询、决定表的读取顺序、选择合适的索引（每次查询只能用一个或一组索引）。对于select语句，查询之前，会先检查查询缓存，如果有缓存，则直接返回，不用解析、优化、执行的过程。</p>
+<h5 id="1-1-1-连接管理与安全性"><a href="#1-1-1-连接管理与安全性" class="headerlink" title="1.1.1 连接管理与安全性"></a>1.1.1 连接管理与安全性</h5><p>每个客户端连接都会在服务器端拥有一个线程，连接的查询在这个单独的线程中执行。服务器会负责缓存线程，因此不需要为每一个新建的连接创建或者销毁线程</p>
+<h5 id="1-1-2-优化与执行"><a href="#1-1-2-优化与执行" class="headerlink" title="1.1.2 优化与执行"></a>1.1.2 优化与执行</h5><p>MySQL会解析查询，并创建内部数据结构（解析树），然后对其进行各种优化，包括重写查询，决定表的读取顺序，以及选择合适的索引。</p>
+<h4 id="1-2-并发控制"><a href="#1-2-并发控制" class="headerlink" title="1.2 并发控制"></a>1.2 并发控制</h4><p>MySQL的并发控制包含 服务器层和存储引擎层两个层面，首先介绍一下并发控制中关于锁的概念。</p>
+<h5 id="1-2-1-读写锁"><a href="#1-2-1-读写锁" class="headerlink" title="1.2.1 读写锁"></a>1.2.1 读写锁</h5><p>并发控制方式多是采用锁机制。通常是共享锁（读锁）和排他锁（写锁）。读锁是共享的，或者说是相互不阻塞的。多个客户在同一个时刻可以同时读取同一个资源，互不干扰。写锁是排他的，也就是说在写的同时不允许其他的写锁来写和读锁来读。这样就能防止脏数据的进入。</p>
+<h5 id="1-2-2-锁粒度"><a href="#1-2-2-锁粒度" class="headerlink" title="1.2.2 锁粒度"></a>1.2.2 锁粒度</h5><p>提高资源的并发性关键在于锁粒度。在给定的资源上，锁定的数据量越少，则系统的并发程度越高，只要相互不冲突即可。但是一味的细化锁，让锁的数量上升也会增加系统对资源的消耗。所以真正的锁策略是在锁的开销和数据的安全性之间寻求一种平衡。</p>
+<p>①表锁：</p>
+<p>表锁是Mysql中开销最小的锁。它的策略是会锁定一张表，如果用户对表写入（插入，更新，删除），就会将表锁住，同时阻塞其他的用户对这张表的读和写。在某些场景下，写锁比读锁更高的优先级。写锁请求会插入到读锁队列的前面。</p>
+<p>②行级锁：</p>
+<p>行锁是最大程度支持并发处理（锁开销最大）。像默认的存储引擎InnoDB等实现了行锁。行锁只在存储引擎层实现。</p>
+<h4 id="1-3-事务性"><a href="#1-3-事务性" class="headerlink" title="1.3 事务性"></a>1.3 事务性</h4><p>3.Mysql事务<br>①事务的特性ACID </p>
+<p>原子性（atomicity）  ：一个事务必须被视为一个不可分割的最小工作单元。</p>
+<p>一致性（consistency）：数据库总是从一个一致性状态转换到另一个一致性状态。</p>
+<p>隔离性（isolation）  ：一个事务所做的修改在最终提交以前，对其他事务是不可见的。可重复读（REPEATABLE READ）是Mysql的默认事务隔离级别。</p>
+<p>持久性（durabilty）  ：一旦事务提交，则其所做的修改就会永久保存到数据库中。</p>
+<h5 id="1-3-1-事务的隔离级别"><a href="#1-3-1-事务的隔离级别" class="headerlink" title="1.3.1 事务的隔离级别"></a>1.3.1 事务的隔离级别</h5><pre><code>未提交读   READ UNCOMMITTED
+提交读     READ COMMITTED
+可重复读   REPEATABLE COMMITTED
+可串行化   SERIALIZABLE
+</code></pre><p>详细解读可以查看这边文章 <a href="https://www.jianshu.com/p/4e3edbedb9a8" target="_blank" rel="noopener">五分钟搞清楚MySQL事务隔离级别</a></p>
+<h5 id="1-3-2-死锁"><a href="#1-3-2-死锁" class="headerlink" title="1.3.2 死锁"></a>1.3.2 死锁</h5><p>死锁是指两个或者多个事务之间再同一个资源上的相互占用，并请求锁定对方占用的资源，从而导致恶性循环的现象。<br>为了解决这种问题，数据库系统实现了各种死锁检测和死锁超时机制。<br>InnoDB存储引擎目前处理死锁的方法是将持有最少行级排他锁的事务进行回滚。</p>
+<h5 id="1-3-3-事务日志"><a href="#1-3-3-事务日志" class="headerlink" title="1.3.3 事务日志"></a>1.3.3 事务日志</h5><p>存储引擎在修改表的时候只需要先修改其 内存拷贝 ，再把该修改行为记录持久在磁盘上的事务日志，事务持久化以后，内存被修改的数据在后台可以慢慢地刷回到磁盘。目前大多数引擎均这样实现，称之为预写式日志，修改数据需要写两次磁盘。</p>
+<h5 id="1-3-4-Mysql中的事务"><a href="#1-3-4-Mysql中的事务" class="headerlink" title="1.3.4 Mysql中的事务"></a>1.3.4 Mysql中的事务</h5><p>Mysql默认采用自动提交模式，如果不是显式地开始一个事务，则每个查询都被当作一个事务执行提交操作。</p>
+<pre><code>mysql&gt; SHOW VARIABLES LIKE &apos;AUTOCOMMIT&apos;;
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| autocommit    | ON    |
++---------------+-------+
+1 row in set (0.02 sec)
+1 或者 ON 表示启用，0 或者 OFF 表示禁用。
+
+MySQL可以通过SET SESSION TRANSACTION ISOLATION LEVEL 命令设置隔离级别，
+设置Mysql事务隔离级别：
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+</code></pre><p>① 在事务中混合使用存储引擎：<br>MySQL服务器层不管理事务，事务是由下层的存储引擎实现的，  如果在事务中混合使用了事务型和非事务型的表，在正常提交下不会有什么问题，但当事务需要回滚时，非事务型上表的变更便无法撤销。</p>
+<h4 id="1-4-多版本并发控制-MVCC"><a href="#1-4-多版本并发控制-MVCC" class="headerlink" title="1.4 多版本并发控制 MVCC"></a>1.4 多版本并发控制 MVCC</h4><p>MVCC的实现，是通过保存数据在某个时间点的快照来实现的。也就是说，不管需要执行多长时间，每个事务看到的数据都是一致的。根据事务开始的时间不同，每个事务对同一张表，同一时刻看到的数据可能是不一样的。如果有点迷，请往下看</p>
+<p>InnoDB的MVCC，是通过在每行记录后面保存了两个隐藏的列来实现的。<br>InnoDB的MVCC采用系统版本号（此处是两个版本号，一个是删除版本号，一个是创建版本号），每开始一个新事务，系统版本号都会自动递增。而当前的快照版本号会和当前的版本号进行比较来操作。</p>
+<pre><code>查询：InnoDB会根据以下两个条件检查每行记录
+    a. InnoDB只查找版本号早于当前事务版本的数据行（行的版本号小于等于事务的系统版本号）。这样就会避免出现脏读。
+    b. 行的删除版本号要么未定义，要么大于当前事务版本号（保证事务读取的行，在读之前未被删除），这样就不会出现脏读。
+插入：  
+    InnoDB为新插入的每一行保存当前系统版本号作为行版本号。
+删除：  
+    InnoDB为删除的每一行保存当前系统版本号作为删除标识。
+
+更新：  
+    InnoDB为插入一行新纪录，保存当前系统版本号作为行版本号，同时保存当前系统版本号到原来的行作为行删除标识符。
+</code></pre><p>MVCC只在REPEATABLE READ 和 READ COMMITTED两个隔离级别下工作其它两个隔离级别都和MVCC不兼容<br>READ UNCOMMITTED 总是读取最新的数据行  SERIALIZEABLE则会对所有读取的行都加锁。</p>
+<h4 id="1-5-MySQL-的存储引擎"><a href="#1-5-MySQL-的存储引擎" class="headerlink" title="1.5 MySQL 的存储引擎"></a>1.5 MySQL 的存储引擎</h4><p>在文件系统中，Mysql将每个数据库保存为数据目录下的一个子目录。创建表时，Mysql会在数据库子目录下创建一个和表同名的.frm文件中保存该表的定义。Mysql的大小写敏感性和具体的平台有关。windows上是不敏感的，而linux上是敏感的。</p>
+<p>查询表本身的信息：可以使用 SHOW TABLE STATUS LIKE ‘table_name’;</p>
+<pre><code>mysql&gt; SHOW TABLE STATUS LIKE &apos;user&apos;; 
++------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-----------------+----------+--------------------+---------+
+| Name | Engine | Version | Row_format | Rows | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time         | Update_time | Check_time | Collation       | Checksum | Create_options     | Comment |
++------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-----------------+----------+--------------------+---------+
+| user | InnoDB |      10 | Compact    | 3791 |            972 |     3686400 |               0 |      2670592 |  11534336 |           6771 | 2018-04-26 13:23:54 | NULL        | NULL       | utf8_general_ci | NULL     | row_format=COMPACT |         |
++------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+-------------+------------+-----------------+----------+--------------------+---------+
+1 row in set (0.12 sec)  
+</code></pre><h5 id="1-5-1-InnoDB-存储引擎"><a href="#1-5-1-InnoDB-存储引擎" class="headerlink" title="1.5.1 InnoDB 存储引擎"></a>1.5.1 InnoDB 存储引擎</h5><p>InnoDB是MySQL的默认事务型引擎，用来处理大量的短期事务，短期事务大部分情况是正常提交的，很少会被回滚。<br>InnoDB的改进：可测量性、可扩展性、可配置化、性能、各种新特性和对Windows的支持等。<br>InnoDB采用MVCC来支持高并发，并且实现了四个标准的隔离级别。其默认级别是REPEATABLEREAD（可重复读），并且通过间隙锁策略防止幻读的出现。<br>InnoDB表是基于聚簇索引建立的，聚簇索引对主键查询有很高的性能。不过它的二级索引中必须包含主键列，如果主键列很大的话，其他的所有索引都会很大。若表上的索引较多的话，主键应当尽可能的小。</p>
+<h5 id="1-5-2-MyISAM存储引擎"><a href="#1-5-2-MyISAM存储引擎" class="headerlink" title="1.5.2 MyISAM存储引擎"></a>1.5.2 MyISAM存储引擎</h5><p>MyISAM存储引擎不支持事务和行级锁，崩溃后无法安全恢复。<br>MyISAM会将表存储在两个文件中：数据文件和索引文件，以.MYD和.MYI为扩展名。<br>MyISAM表可以存储的行记录数，一般受限于可用的磁盘空间，或者操作系统中单个文件的最大尺寸。</p>
+<h5 id="1-5-3-MySQL内建的其他存储引擎："><a href="#1-5-3-MySQL内建的其他存储引擎：" class="headerlink" title="1.5.3 MySQL内建的其他存储引擎："></a>1.5.3 MySQL内建的其他存储引擎：</h5><pre><code>Archive引擎、Blackhole引擎、CSV引擎、Federated引擎、Memory引擎、Merge引擎、NDB集群引擎。
+</code></pre><h5 id="1-5-4-第三方引擎"><a href="#1-5-4-第三方引擎" class="headerlink" title="1.5.4 第三方引擎"></a>1.5.4 第三方引擎</h5><p>第三方引擎中，Percona的XtraDB存储引擎是基于InnoDB引擎的一个改进版本，可以作为InnoDB的一个完全的替代产品。<br>Infobright是最有名的面向列的存储引擎。</p>
+<h5 id="1-5-5-选择合适的引擎"><a href="#1-5-5-选择合适的引擎" class="headerlink" title="1.5.5 选择合适的引擎"></a>1.5.5 选择合适的引擎</h5><p>在选择合适的引擎时，除非需要用到某些InnoDB不具备的特性，并且没有其他办法可以替代，否则都应该优先选择InnoDB引擎。<br>除非万不得已，否则建议不要混合使用多种引擎。<br>如果应用需要事务支持，那么选择InnoDB（或者XtraDB），不需要事务并且主要是SELECT和INSERT操作，那么MyISAM是不错的选择。一般日志型的应用比较符合。<br>如果可以定期地关闭服务器来执行备份，那么备份的因素可以忽略。如果需要在线热备份，那么选择InnoDB就是基本的要求。<br>MyISAM崩溃后发生损坏的概率比InnoDB要高很多，而且恢复速度也要慢。<br>如果一个存储引擎拥有一些关键的特性，同时却又缺乏一些必要的特性，那么有时候不得不做折中的考虑，或者在架构设计上做一些取舍。某些存储引擎无法直接支持的特性，有时候通过变通也可以满足需求。</p>
+<p>日志型应用：这一类应用的插入速度有很高的要求，MyISAM或者Archive存储引擎对这类应用比较合适，因为他们开销低，而且插入速度非常快。<br>要对记录的日志做分析报表：①利用MySQL内置的复制方案将数据复制一份到备库。②在日志记录表的名字中包含年和月的信息，比如web_log_2012_01，这样可以在已经没有插入操作的历史表上做频繁的查询操作，而不会干扰到最新的当前表上的插入操作。<br>只读或者大部分情况下只读的表：建议采用InnoDB。</p>
+<p>订单处理：支持事务是必要选择。另外一个重要的考虑点是存储引擎对外键的支持情况。InnoDB是订单处理类应用的最佳选择。<br>CD-ROM应用：可以考虑使用MyISAM表或者MyISAM压缩表，这样表之间可以隔离并且可以在不同介质上相互拷贝。压缩表比未压缩的表要节约很多空间，但压缩表是只读的。如果数据放到只读介质的场景下，就采用压缩表。<br>大数据量：采用InnoDB数据库。10TB以上的级别可能就需要建立数据仓库。Infobright是MySQL数据仓库最成功的解决方案。也有一些大数据库适合TokuDB。</p>
+<h5 id="1-5-6-转换表的引擎有3中方法。"><a href="#1-5-6-转换表的引擎有3中方法。" class="headerlink" title="1.5.6 转换表的引擎有3中方法。"></a>1.5.6 转换表的引擎有3中方法。</h5><p>1.ALTER TABLE：用语句ALTER TABLE mytable ENGINE = InnoDB;需要执行很长时间，在繁忙的表上执行此操作要特别小心。如果将一张InnoDB表转换为MyISAM，然后再转回InnoDB，原InnoDB表上所有的外键将丢失。<br>2.导入与导出：可以使用mysqldump工具将数据导出文件，然后修改文件中CREATETABLE语句的存储引擎选项，注意同时修改表名。<br>3.创建与查询：先创建一个新的存储引擎的表，然后利用INSERT…SELECT语法来导数据。数据量很大则可以考虑做分批处理，针对每一段数据执行事务提交操作。</p>
 </div><div class="tags"><a href="/tags/高性能mysql/">高性能mysql</a></div><div class="post-nav"><a class="pre" href="/redis1.html">关于Redis</a><a class="next" href="/gantt.html">XMind 8免费激活方法</a></div><div id="SOHUCS" sid="1533819965000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
 </script></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://blog.beere.cn"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/高性能mysql/" style="font-size: 15px;">高性能mysql</a> <a href="/tags/Redis/" style="font-size: 15px;">Redis</a> <a href="/tags/工具/" style="font-size: 15px;">工具</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/redis1.html">关于Redis</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part1.html">MySQL架构与历史</a></li><li class="post-list-item"><a class="post-list-link" href="/gantt.html">XMind 8免费激活方法</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-plan.html">高性能MySQL阅读计划</a></li><li class="post-list-item"><a class="post-list-link" href="/hello-world.html">第一篇博客</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">DGH.</a> Powered by<a rel="external nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="external nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="external nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a><br/><span class="article-traffic" id="busuanzi_container_site_pv">本站总访问量&nbsp;<span id="busuanzi_value_site_pv"></span> 次&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="article-traffic" id="busuanzi_container_site_uv">本站访客数&nbsp;<span id="busuanzi_value_site_uv"></span> 人次</span></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
