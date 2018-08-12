@@ -4,6 +4,23 @@
 
     
   <url>
+    <loc>http://blog.beere.cn/mysql-plan.html</loc>
+    <lastmod>2018-08-12T12:51:15.919Z</lastmod>
+    <data>
+        <display>
+        <title>高性能MySQL阅读计划</title>
+        <pubTime>2018-08-03T11:06:38.000Z</pubTime>
+        
+        <tag>高性能MySQL</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.beere.cn/mysql-part1.html</loc>
     <lastmod>2018-08-12T12:37:48.270Z</lastmod>
     <data>
@@ -88,23 +105,6 @@
     </url>
 
     
-    
-  <url>
-    <loc>http://blog.beere.cn/mysql-plan.html</loc>
-    <lastmod>2018-08-05T09:46:41.246Z</lastmod>
-    <data>
-        <display>
-        <title>高性能MySQL阅读计划</title>
-        <pubTime>2018-08-03T11:06:38.000Z</pubTime>
-        
-        <tag>高性能mysql</tag>
-         
-         
-           
-        </display>
-    </data>
-    </url>
-
     
   <url>
     <loc>http://blog.beere.cn/hello-world.html</loc>

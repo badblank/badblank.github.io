@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.beere.cn/mysql-plan.html</loc>
+    
+    <lastmod>2018-08-12T12:51:15.919Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.beere.cn/mysql-part1.html</loc>
     
     <lastmod>2018-08-12T12:37:48.270Z</lastmod>
@@ -40,13 +47,6 @@
     <loc>http://blog.beere.cn/google20be845e965053f0.html</loc>
     
     <lastmod>2018-08-06T06:17:18.068Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.beere.cn/mysql-plan.html</loc>
-    
-    <lastmod>2018-08-05T09:46:41.246Z</lastmod>
     
   </url>
   
