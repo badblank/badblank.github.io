@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.beere.cn/mysql-part5.html</loc>
+    <loc>http://blog.beere.cn/mysql-part4.html</loc>
     
-    <lastmod>2018-08-19T09:16:43.027Z</lastmod>
+    <lastmod>2018-08-19T09:35:14.304Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.beere.cn/mysql-part4.html</loc>
+    <loc>http://blog.beere.cn/sort.html</loc>
     
-    <lastmod>2018-08-19T09:02:03.721Z</lastmod>
+    <lastmod>2018-08-19T09:34:53.767Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.beere.cn/mysql-part5.html</loc>
+    
+    <lastmod>2018-08-19T09:34:45.799Z</lastmod>
     
   </url>
   
@@ -19,13 +26,6 @@
     <loc>http://blog.beere.cn/lua.html</loc>
     
     <lastmod>2018-08-15T03:04:13.930Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.beere.cn/sort.html</loc>
-    
-    <lastmod>2018-08-13T07:17:18.634Z</lastmod>
     
   </url>
   
