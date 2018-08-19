@@ -4,6 +4,53 @@
 
     
   <url>
+    <loc>http://blog.beere.cn/mysql-part4.html</loc>
+    <lastmod>2018-08-19T08:57:10.382Z</lastmod>
+    <data>
+        <display>
+        <title>Schema 与数据类型优化</title>
+        <pubTime>2018-08-13T02:29:34.000Z</pubTime>
+        
+        <tag>高性能MySQL</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.beere.cn/lua.html</loc>
+    <lastmod>2018-08-15T03:04:13.930Z</lastmod>
+    <data>
+        <display>
+        <title>lua</title>
+        <pubTime>2018-08-15T03:04:13.000Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.beere.cn/sort.html</loc>
+    <lastmod>2018-08-13T07:17:18.634Z</lastmod>
+    <data>
+        <display>
+        <title>排序算法总结</title>
+        <pubTime>2018-08-13T06:40:18.000Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.beere.cn/mysql-plan.html</loc>
     <lastmod>2018-08-12T12:51:15.919Z</lastmod>
     <data>
