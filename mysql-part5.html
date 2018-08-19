@@ -1,24 +1,29 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="keywords" content="段高华的个人博客,段高华,个人博客,DGH"><meta name="description" content="段高华的个人博客，用来分享感悟，交流技术"><meta name="google-site-verification" content="QrUYVxCv1Bj4G1bn_SOjQmEVgJVpWZvtzbtXUbj6IkQ"><meta name="baidu-site-verification" content="0sZAwJdLy1"><title>mysql-part5 | DGH</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><script type="text/javascript" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">mysql-part5</h1><a id="logo" href="/.">DGH</a><p class="description">真正有思想的人是有趣的</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a><a href="/atom.xml"><i class="fa fa-rss"> 订阅</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">mysql-part5</h1><div class="post-meta">Aug 17, 2018<span class="article-traffic" id="busuanzi_container_page_pv" style="padding-left: 15px;">本文阅读量<span id="busuanzi_value_page_pv"></span> 次</span></div><a class="ds-thread-count" href="/mysql-part5.html#SOHUCS"><span id="changyan_count_unit" style="font-size: 15px; color: #6E7173;">0</span><span> 条评论</span></a><script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js" async></script><div class="post-content"><p>什么是索引？</p>
-<blockquote>
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="keywords" content="段高华的个人博客,段高华,个人博客,DGH"><meta name="description" content="段高华的个人博客，用来分享感悟，交流技术"><meta name="google-site-verification" content="QrUYVxCv1Bj4G1bn_SOjQmEVgJVpWZvtzbtXUbj6IkQ"><meta name="baidu-site-verification" content="0sZAwJdLy1"><title>创建高性能的索引 | DGH</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><script type="text/javascript" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">创建高性能的索引</h1><a id="logo" href="/.">DGH</a><p class="description">真正有思想的人是有趣的</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a><a href="/atom.xml"><i class="fa fa-rss"> 订阅</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">创建高性能的索引</h1><div class="post-meta">Aug 17, 2018<span class="article-traffic" id="busuanzi_container_page_pv" style="padding-left: 15px;">本文阅读量<span id="busuanzi_value_page_pv"></span> 次</span></div><a class="ds-thread-count" href="/mysql-part5.html#SOHUCS"><span id="changyan_count_unit" style="font-size: 15px; color: #6E7173;">0</span><span> 条评论</span></a><script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js" async></script><div class="post-content"><img src="/mysql-part5/mysql_part5_1.jpg" title="msql索引">
+<p align="center">msql索引</p>
+
+<h3 id="什么是索引？"><a href="#什么是索引？" class="headerlink" title="什么是索引？"></a>什么是索引？</h3><blockquote>
 <p>索引是存储引擎用于快速找到记录的一种数据结构。索引能轻易将查询性能提高几个数量级。索引可以包含一个或多个列的值。如果索引包含多个列，那么列的顺序也十分重要，因为 MySQL 只能高效地使用索引的最左前缀列。<br><a id="more"></a><br>索引的类型：</p>
 <ol>
-<li>B-TREE 索引：使用 B-Tree 数据结构。大多数 MySQL 引擎都支持这种索引。不过底层的存储引擎也可能使用不同的存储结构。InnoDB 使用的是B+Tree。B-Tree 索引适用于**全键值、键值范围或键前缀查找（最左前缀）。<br>一般情况下索引都是指B-Tree索引，它使用B-Tree数据结构来存储数据。实际上其实是基于B+Tree实现的，在每个叶子结点都包含一个指向下一个叶子结点的指针。</li>
+<li>B-TREE 索引：使用 B-Tree 数据结构，在每个叶子结点都包含一个指向下一个叶子结点的指针。大多数 MySQL 引擎都支持这种索引。不过底层的存储引擎也可能使用不同的存储结构。InnoDB 使用的是B+Tree。B-Tree 索引适用于全键值、键值范围或键前缀查找（最左前缀）。<br>B-Tree意味着所有的值都是按照顺序存储的，比如对于name属性，就是按照从a-z的顺序存储的。使用B-Tree索引后，存储引擎不再需要进行全表扫描来获取需要的数据，而是从索引的根节点开始进行搜索，最终结果是要么找到对应的值，要么记录不存在。这样就能够加快访问数据的速度。<br>B-Tree对索引列是顺序组织存储的，所以很适合查找范围数据。（比如查找I-k开头的名字，这样效率会很高） </li>
 </ol>
-</blockquote>
-<p>   B-Tree意味着所有的值都是按照顺序存储的，比如对于name属性，就是按照从a-z的顺序存储的。使用B-Tree索引后，存储引擎不再需要进行全表扫描来获取需要的数据，而是从索引的根节点开始进行搜索，最终结果是要么找到对应的值，要么记录不存在。这样就能够加快访问数据的速度。<br>   B-Tree对索引列是顺序组织存储的，所以很适合查找范围数据。（比如查找I-k开头的名字，这样效率会很高）</p>
-<pre><code>B-Tree索引适合的查询类型 
-* 全值匹配：和索引中的所有列进行匹配。
-* 匹配最左前缀：对于一个索引包含多个列，只使用索引的第一列。
-* 匹配列前缀：匹配某一列的值的开头部分。（比如匹配name字段的时候，只匹配以J开头的姓名）这里只用到了索引的第一列。
-* 匹配范围值：匹配字段在某一个范围内的记录，这里只用到了索引的第一列。
-* 精确匹配某一列并范围匹配另外一列：对于一个索引包含多个字段的情况，比如精确匹配第一列，第二列范围匹配。
-* 只访问索引的查询：之访问索引行而不访问记录中其余字段的数据行。    
-
-B-TREE 索引的一些限制：  
-* 如果不是按照索引的最左列开始查找，则无法使用索引。
-* 不能跳过索引中的列。
-* 如果查询中有某个列的范围查询，则其右边所有列都无法使用索引优化查找。
-</code></pre><ol start="2">
+<ul>
+<li>B-Tree索引适合的查询类型 <ul>
+<li>全值匹配：和索引中的所有列进行匹配。</li>
+<li>匹配最左前缀：对于一个索引包含多个列，只使用索引的第一列。</li>
+<li>匹配列前缀：匹配某一列的值的开头部分。（比如匹配name字段的时候，只匹配以J开头的姓名）这里只用到了索引的第一列。</li>
+<li>匹配范围值：匹配字段在某一个范围内的记录，这里只用到了索引的第一列。</li>
+<li>精确匹配某一列并范围匹配另外一列：对于一个索引包含多个字段的情况，比如精确匹配第一列，第二列范围匹配。</li>
+<li>只访问索引的查询：之访问索引行而不访问记录中其余字段的数据行。    </li>
+</ul>
+</li>
+<li>B-TREE 索引的一些限制：  <ul>
+<li>如果不是按照索引的最左列开始查找，则无法使用索引。</li>
+<li>不能跳过索引中的列。</li>
+<li>如果查询中有某个列的范围查询，则其右边所有列都无法使用索引优化查找。</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
 <li>哈希索引：基于哈希表实现，只有精确匹配索引所有列的查询才有效。只有Memory引擎显式支持哈希索引。<ul>
 <li>哈希索引只存储哈希值和行指针，并不存储具体的字段值，所以一定会存在读取行的过程。</li>
 <li>哈希索引并不是按照索引值顺序存储的，所以就无法用于排序。</li>
@@ -26,15 +31,18 @@ B-TREE 索引的一些限制：
 <li>哈希索引就存在哈希冲突的问题，对于哈希冲突的数据必须遍历链表中的所有行指针。</li>
 </ul>
 </li>
+<li>空间数据索引（R树）<br>MyISAM表支持空间索引，可以用作地理数据存储。</li>
+<li>全文索引<br>全文索引是一种特殊类型的索引，他查找的是文本中的关键词，而不是比较索引中的值。在相同的列上同时创建全文索引和基于值的B树索引不会有冲突，全文索引适用于MATCH AGAINST 操作，而不是普通的WHERE条件操作。</li>
+<li>其他索引类别<br>还有很多第三方的存储引擎使用不同类型的数据结构来存储索引，例如TokuDB使用分形树索引（fractal tree index）。</li>
 </ol>
+</blockquote>
 <p>索引的优点:</p>
 <ul>
 <li>索引大大减少了服务器需要扫描的数据量。</li>
 <li>索引可以帮助服务器避免排序和临时表。</li>
 <li>索引可以将随机 I/O 变为顺序 I/O。</li>
 </ul>
-<p>高性能的索引策略</p>
-<ol>
+<h3 id="高性能的索引策略"><a href="#高性能的索引策略" class="headerlink" title="高性能的索引策略"></a>高性能的索引策略</h3><ol>
 <li><p>单列索引<br>使用数据表字段中的某一列作为索引。但是索引列不能是表达式的一部分，也不能是函数的参数。</p>
 </li>
 <li><p>前缀索引和索引选择性<br>有时候需要索引很长的字符列，这会让索引变得大且慢。这种情况下可以索引开始的部分字符，这样可以大大节约索引空间，从而提高索引效率。但这样也会降低索引的选择性。索引的选择性是指，不重复的索引值和数据表的记录总数的比值。索引的选择性越高则查询效率越高，因为选择性高的索引可以让 MySQL 在查找时过滤掉更多的行。<br>前缀索引是一种能使索引更小、更快的有效办法，但也有缺点：MySQL 无法使用前缀索引做 ORDER BY 和 GROUP BY，也无法使用前缀索引做覆盖扫描。</p>
@@ -71,6 +79,22 @@ B-TREE 索引的一些限制：
 </ul>
 </li>
 </ol>
-<p>索引和锁<br>索引可以让查询锁定更少的行。InnoDB 只有在访问行的时候才会对其加锁，而索引能够减少InnoDB访问的行数，从而减少锁的数量。但这只有当 InnoDB 在存储引擎层能够过滤掉所有不需要的行时才有效。</p>
-</div><div class="tags"><a href="/tags/索引/">索引</a></div><div class="post-nav"><a class="next" href="/sort.html">排序算法总结</a></div><div id="SOHUCS" sid="1534496725000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
-</script></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://blog.beere.cn"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/工具/" style="font-size: 15px;">工具</a> <a href="/tags/高性能MySQL/" style="font-size: 15px;">高性能MySQL</a> <a href="/tags/索引/" style="font-size: 15px;">索引</a> <a href="/tags/Redis/" style="font-size: 15px;">Redis</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/mysql-part5.html">mysql-part5</a></li><li class="post-list-item"><a class="post-list-link" href="/sort.html">排序算法总结</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part4.html">Schema 与数据类型优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part3.html">服务器性能剖析</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part2.html">MySQL基准测试</a></li><li class="post-list-item"><a class="post-list-link" href="/redis1.html">关于Redis</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part1.html">MySQL架构与历史</a></li><li class="post-list-item"><a class="post-list-link" href="/gantt.html">XMind 8免费激活方法</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-plan.html">高性能MySQL阅读计划</a></li><li class="post-list-item"><a class="post-list-link" href="/hello-world.html">第一篇博客</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">DGH.</a> Powered by<a rel="external nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="external nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="external nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a><br/><span class="article-traffic" id="busuanzi_container_site_pv">本站总访问量&nbsp;<span id="busuanzi_value_site_pv"></span> 次&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="article-traffic" id="busuanzi_container_site_uv">本站访客数&nbsp;<span id="busuanzi_value_site_uv"></span> 人次</span></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
+<h3 id="索引和锁"><a href="#索引和锁" class="headerlink" title="索引和锁"></a>索引和锁</h3><blockquote>
+<p>索引可以让查询锁定更少的行。InnoDB 只有在访问行的时候才会对其加锁，而索引能够减少InnoDB访问的行数，从而减少锁的数量。但这只有当 InnoDB 在存储引擎层能够过滤掉所有不需要的行时才有效。</p>
+</blockquote>
+<p>索引可以让查询锁定更少的行:</p>
+<ol>
+<li>减少内存使用;</li>
+<li>减少锁争用,提高并发度.</li>
+</ol>
+<ul>
+<li>早期Mysql:事务提交后才释放锁;</li>
+<li>新版本Mysql:服务器端过滤掉行后,释放没用到的行锁.</li>
+</ul>
+<p>示例<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Set autoCommit=0;-- 默认是每句都是一个事务</span><br><span class="line">-- 这里改成显式提交。</span><br><span class="line">BEGIN；</span><br><span class="line">Explain</span><br><span class="line">select actor_id from t</span><br><span class="line">where actor_id&lt;5 and actor_id!=1 </span><br><span class="line">FOR Update; -- 加上排他锁</span><br><span class="line"></span><br><span class="line">Extra列：</span><br><span class="line">Using Where;Using index</span><br></pre></td></tr></table></figure></p>
+<p>从Extra列可以看出，虽然使用了索引，但依然有Using Where，意思是使用索引从存储引擎获取到一些数据行，传送给服务器后，依然要使用Where条件进行过滤。因此这个查询锁住的并不只是id为2-4的行。</p>
+<p>Innodb不同索引对应的锁：</p>
+<p>主键索引： 排他锁（写锁）；<br>二级索引： 共享锁（读锁）。</p>
+<p><a href="http://www.codeceo.com/article/mysql-index-2.html" target="_blank" rel="noopener">最全面的 MySQL 索引详解</a><br><a href="https://blog.csdn.net/endlu/article/details/51720299" target="_blank" rel="noopener">BTree和B+Tree详解</a></p>
+</div><div class="tags"><a href="/tags/高性能MySQL/">高性能MySQL</a></div><div class="post-nav"><a class="next" href="/sort.html">排序算法总结</a></div><div id="SOHUCS" sid="1534496725000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
+</script></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://blog.beere.cn"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/工具/" style="font-size: 15px;">工具</a> <a href="/tags/高性能MySQL/" style="font-size: 15px;">高性能MySQL</a> <a href="/tags/Redis/" style="font-size: 15px;">Redis</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/mysql-part5.html">创建高性能的索引</a></li><li class="post-list-item"><a class="post-list-link" href="/sort.html">排序算法总结</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part4.html">Schema 与数据类型优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part3.html">服务器性能剖析</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part2.html">MySQL基准测试</a></li><li class="post-list-item"><a class="post-list-link" href="/redis1.html">关于Redis</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part1.html">MySQL架构与历史</a></li><li class="post-list-item"><a class="post-list-link" href="/gantt.html">XMind 8免费激活方法</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-plan.html">高性能MySQL阅读计划</a></li><li class="post-list-item"><a class="post-list-link" href="/hello-world.html">第一篇博客</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">DGH.</a> Powered by<a rel="external nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="external nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="external nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a><br/><span class="article-traffic" id="busuanzi_container_site_pv">本站总访问量&nbsp;<span id="busuanzi_value_site_pv"></span> 次&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="article-traffic" id="busuanzi_container_site_uv">本站访客数&nbsp;<span id="busuanzi_value_site_uv"></span> 人次</span></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

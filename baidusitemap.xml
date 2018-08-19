@@ -4,12 +4,12 @@
 
     
   <url>
-    <loc>http://blog.beere.cn/mysql-part4.html</loc>
-    <lastmod>2018-08-19T09:53:29.088Z</lastmod>
+    <loc>http://blog.beere.cn/mysql-part5.html</loc>
+    <lastmod>2018-08-19T11:03:15.411Z</lastmod>
     <data>
         <display>
-        <title>Schema 与数据类型优化</title>
-        <pubTime>2018-08-13T02:29:34.000Z</pubTime>
+        <title>创建高性能的索引</title>
+        <pubTime>2018-08-17T09:05:25.000Z</pubTime>
         
         <tag>高性能MySQL</tag>
          
@@ -21,14 +21,14 @@
 
     
   <url>
-    <loc>http://blog.beere.cn/mysql-part5.html</loc>
-    <lastmod>2018-08-19T09:52:47.070Z</lastmod>
+    <loc>http://blog.beere.cn/mysql-part4.html</loc>
+    <lastmod>2018-08-19T09:53:29.088Z</lastmod>
     <data>
         <display>
-        <title>mysql-part5</title>
-        <pubTime>2018-08-17T09:05:25.000Z</pubTime>
+        <title>Schema 与数据类型优化</title>
+        <pubTime>2018-08-13T02:29:34.000Z</pubTime>
         
-        <tag>索引</tag>
+        <tag>高性能MySQL</tag>
          
          
            
