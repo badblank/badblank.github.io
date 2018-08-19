@@ -4,8 +4,25 @@
 
     
   <url>
+    <loc>http://blog.beere.cn/mysql-part5.html</loc>
+    <lastmod>2018-08-19T09:16:43.027Z</lastmod>
+    <data>
+        <display>
+        <title>mysql-part5</title>
+        <pubTime>2018-08-17T09:05:25.000Z</pubTime>
+        
+        <tag>索引</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.beere.cn/mysql-part4.html</loc>
-    <lastmod>2018-08-19T08:57:10.382Z</lastmod>
+    <lastmod>2018-08-19T09:02:03.721Z</lastmod>
     <data>
         <display>
         <title>Schema 与数据类型优化</title>
