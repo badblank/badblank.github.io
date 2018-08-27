@@ -4,6 +4,38 @@
 
     
   <url>
+    <loc>http://blog.beere.cn/mysql-part6.html</loc>
+    <lastmod>2018-08-27T01:29:19.577Z</lastmod>
+    <data>
+        <display>
+        <title>查询性能优化</title>
+        <pubTime>2018-08-25T11:53:10.000Z</pubTime>
+        
+        <tag>高性能MySQL</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.beere.cn/sort.html</loc>
+    <lastmod>2018-08-19T11:05:57.394Z</lastmod>
+    <data>
+        <display>
+        <title>排序算法总结</title>
+        <pubTime>2018-08-14T06:40:18.000Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.beere.cn/mysql-part5.html</loc>
     <lastmod>2018-08-19T11:03:15.411Z</lastmod>
     <data>
@@ -30,21 +62,6 @@
         
         <tag>高性能MySQL</tag>
          
-         
-           
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.beere.cn/sort.html</loc>
-    <lastmod>2018-08-19T09:36:29.821Z</lastmod>
-    <data>
-        <display>
-        <title>排序算法总结</title>
-        <pubTime>2018-08-14T06:40:18.000Z</pubTime>
-        
          
            
         </display>

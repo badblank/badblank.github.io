@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="keywords" content="段高华的个人博客,段高华,个人博客,DGH"><meta name="description" content="段高华的个人博客，用来分享感悟，交流技术"><meta name="google-site-verification" content="QrUYVxCv1Bj4G1bn_SOjQmEVgJVpWZvtzbtXUbj6IkQ"><meta name="baidu-site-verification" content="0sZAwJdLy1"><title>查询性能优化 | DGH</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><script type="text/javascript" src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">查询性能优化</h1><a id="logo" href="/.">DGH</a><p class="description">真正有思想的人是有趣的</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a><a href="/atom.xml"><i class="fa fa-rss"> 订阅</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">查询性能优化</h1><div class="post-meta">Aug 25, 2018<span class="article-traffic" id="busuanzi_container_page_pv" style="padding-left: 15px;">本文阅读量<span id="busuanzi_value_page_pv"></span> 次</span></div><a class="ds-thread-count" href="/mysql-part6.html#SOHUCS"><span id="changyan_count_unit" style="font-size: 15px; color: #6E7173;">0</span><span> 条评论</span></a><script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js" async></script><div class="post-content"><h3 id="6-1为什么查询速度会慢"><a href="#6-1为什么查询速度会慢" class="headerlink" title="6.1为什么查询速度会慢"></a>6.1为什么查询速度会慢</h3><p>查询中真正重要是响应时间.如果把查询看作是一个任务， 那么它由一系列子任务组成， 每个子任务都会消耗一定的时间。 如果要优化查询， 实际上要优化其子任务， 要么消除其中一些子任务， 要么减少子任务的执行次数，要么让子任务运行得更快.<br>在每一个消耗大量时间的查询案例中， 我们都能看到一些不必要的额外操作、 某些操作被额外地重复了很多次、 某些操作执行得太慢等。优化查询的目的就是减少和消除这些操作所花费的时间。</p>
+<h3 id="6-2慢查询基础：优化数据访问"><a href="#6-2慢查询基础：优化数据访问" class="headerlink" title="6.2慢查询基础：优化数据访问"></a>6.2慢查询基础：优化数据访问</h3><p>查询性能低下最基本的原因是访问的数据太多。某些查询可能不可避免地需要筛选大量 数据， 但这井不常见。大部分性能低下的查询都可以通过减少访问的数据量的方式进行 优化。对于低效的查询， 我们发现通过下面两个步骤来分析总是很有效：</p>
+<ol>
+<li>确认应用程序是否在检索大量超过需要的数据。这通常意味着访问了太多的行， 但有时候也可能是访问了太多的列。</li>
+<li>确认MySQL服务器层是否在分析大量超过需要的数据行。</li>
+</ol>
+<h4 id="6-2-1是否向数据库请求了不需要的数据"><a href="#6-2-1是否向数据库请求了不需要的数据" class="headerlink" title="6.2.1是否向数据库请求了不需要的数据"></a>6.2.1是否向数据库请求了不需要的数据</h4><p>有些查询会请求超过实际需要的数据， 然后这些多余的数据会被应用程序丢弃。这会给MySQL服务器带来额外的负担， 并增加网络开销。另外也会消耗应用服务器的CPU 和内存资源。</p>
+<h3 id="6-2-2MySQL是否在扫描额外的记录"><a href="#6-2-2MySQL是否在扫描额外的记录" class="headerlink" title="6.2.2MySQL是否在扫描额外的记录"></a>6.2.2MySQL是否在扫描额外的记录</h3><p>在确定查询只返回需要的数据以后，接下来应该看看查询为了返回结果是否扫描了过多 的数据。对于MySQL, 最简单的衡量查询开销的三个指标如下：</p>
+<p>•    响应时间</p>
+<p>•    扫描的行数</p>
+<p>•    返回的行数</p>
+<p>没有哪个指标能够完美地衡量查询的开销，但它们大致反映了MySQL在内部执行查询时需要访问多少数据，并可以大概推算出查询运行的时间。 这三个指标都会记录到MySQL的慢日志中，所以检查慢日志记录是找出扫描行数过多的查询的好办法。</p>
+<ol>
+<li><p>响应时间<br>要记住，响应时间只是一个表面上的值。响应时间是两个部分之和：服务时间和排队时间。 服务时间是指数据库处理这个查询真正花了多长时间。 排队时间是指服务器因为等待某些资源而没有真正执行查询的时间——可能是等I/O操作完成，也可能是等待行锁，等等。遗憾的是，我们无法把响应 时间细分到上面这些部分，除非有什么办法能够逐个测量上面这些消耗，不过很难做到。 一般最常见和重要的等待是I/O和锁等待，但是实际情况更加复杂。</p>
+</li>
+<li><p>扫描的行数和返回的行数<br>分析查询时，查看该查询扫描的行数是非常有帮助的。 这在一定程度上能够说明该查询找到需要的数据的效率高不高。<br>对于找出那些 “糟糕” 的查询，这个指标可能还不够完美， 因为并不是所有的行的访问代价都是相同的。 较短的行的访问速度更快， 内存中的行也比磁盘中的行的访问速度要快得多。<br>理想情况下扫描的行数和返回的行数应该是相同的。 但实际情况中这种 “美事” 井不多。例如在做一个关联查询时，服务器必须要扫描多行才能生成结果集中的一行。 扫描的行数对返回的行数的比率通常很小，一般在1:1和10:1之间，不过有时候这个值也可能非常非常大。</p>
+</li>
+<li><p>扫描的行数和访问类型<br>在评估查询开销的时候，需要考虑一下从表中找到某一行数据的成本。 MySQL有好儿 种访问方式可以查找井返回一行结果。 有些访问方式可能需要扫描很多行才能返回一行结果，也有些访问方式可能无须扫描就能返回结果。<br>在EXPLAIN语句中的type列反应了访问类型。 访问类型有很多种，从全表扫描到索引扫描、 范围扫描、 唯一索引查询、 常数引用等。 这里列的这些，速度是从慢到快，扫描的 行数也是从小到大。 你不需要记住这些访问类型，但需要明白扫描表、 扫描索引、 范围访问和单值访问的概念。<br>MySQL能够使用如下三种方式应用WHERE条件， 从好到坏依次为 ：</p>
+<ol>
+<li>在索引中使用WHERE条件来过滤不匹配的记录。 这是在存储引擎层完成的。</li>
+<li>使用索引覆盖扫描（在Extra列中出现了Using index) 来返回记录， 直接从索引中过滤不需要的记录并返回命中的结果。 这是在MySQL服务器层完成的， 但无须再回表查询记录。</li>
+<li>从数据表中返回数据，然后过滤不满足条件的记录（在Extra列中出现Using Where)。这在MySQL服务器层完成，MySQL需要先从数据表读出记录然后过滤。</li>
+</ol>
+</li>
+</ol>
+<p>如果发现查询需要扫描大量的数据但只返回少数的行， 那么通常可以尝试下面的技巧去优化它：</p>
+<ol>
+<li><p>使用索引覆盖扫描， 把所有需要用的列都放到索引中， 这样存储引擎无须回表获取对应行就可以返回结果了（在前面的章节中我们已经讨论过了）。</p>
+</li>
+<li><p>改变库表结构。例如使用单独的汇总表（这是我们在第4章中讨论的办法）。</p>
+</li>
+<li><p>重写这个复杂的查询， 让MySQL优化器能够以更优化的方式执行这个查询（这是本章后续需要讨论的问题）。</p>
+</li>
+</ol>
+<h3 id="6-3重构查询的方式"><a href="#6-3重构查询的方式" class="headerlink" title="6.3重构查询的方式"></a>6.3重构查询的方式</h3><h4 id="6-3-1一个复杂查询还是多个简单查询"><a href="#6-3-1一个复杂查询还是多个简单查询" class="headerlink" title="6.3.1一个复杂查询还是多个简单查询"></a>6.3.1一个复杂查询还是多个简单查询</h4><p>设计查询的时候一个需要考虑的重要问题是， 是否需要将一个复杂的查询分成多个简单的查询。在传统实现中， 总是强调需要数据库层完成尽可能多的工作， 这样做的逻辑在于以前总是认为网络通信、 查询解析和优化是一件代价很高的事情。<br>但是这样的想法对于MySQL并不适用，MySQL从设计上让连接和断开连接都很轻量级，在返回一个小的查询结果方面很高效。 现代的网络速度比以前要快很多， 无论是带宽还是延迟。 在某些版本的MySQL上， 即使在一个通用服务器上， 也能够运行每秒超过10万的查询， 即使是一个千兆网卡也能轻松满足每秒超过2000次的查询。 所以运行多个小查询现在已经不是大问题了。<br>MySQL内部每秒能够扫描内存中上百万行数据， 相比之下， MySQL响应数据给客户端就慢得多了。在其他条件都相同的时候，使用尽可能少的查询当然是更好的。但是有时候，将一个大查询分解为多个小查询是很有必要的。 别害怕这样做， 好好衡量一下这样做是 不是会减少工作量。 稍后我们将通过本章的一个示例来展示这个技巧的优势。<br>不过， 在应用设计的时候， 如果一个查询能够胜任时还写成多个独立查询是不明智的。例如， 我们看到有些应用对一个数据表做10次独立的查询来返回10行数据， 每个查询返回一条结果， 查询10次！</p>
+<h4 id="6-3-2切分查询"><a href="#6-3-2切分查询" class="headerlink" title="6.3.2切分查询"></a>6.3.2切分查询</h4><p>有时候对于一个大查询我们需要 “分而治之”，将大查询切分成小查询， 每个查询功能完全一样， 只完成一小部分， 每次只返回一小部分查询结果。</p>
+<h4 id="6-3-3分解关联查询"><a href="#6-3-3分解关联查询" class="headerlink" title="6.3.3分解关联查询"></a>6.3.3分解关联查询</h4><p>很多高性能的应用都会对关联查询进行分解。简单地， 可以对每一个表进行一次单表查询， 然后将结果在应用程序中进行关联。<br>到底为什么要这样做？乍一看， 这样做并没有什么好处， 原本一条查询， 这里却变成多 条查询， 返回的结果又是一模一样的。 事实上， 用分解关联查询的方式重构查询有如下 的优势：</p>
+<ol>
+<li><p>让缓存的效率更高。 许多应用程序可以方便地缓存单表查询对应的结果对象。 另外， 对MySQL的查询缓存来说 , 如果关联中的某个表发生了变化，那么就无法使用查询缓存了， 而拆分后， 如果某个表很少改变， 那么基于该表的查询就可以重复利用查询缓存结果了。</p>
+</li>
+<li><p>将查询分解后，执行单个查询可以减少锁的竞争。</p>
+</li>
+<li><p>在应用层做关联， 可以更容易对数据库进行拆分， 更容易做到高性能和可扩展。</p>
+</li>
+<li><p>查询本身效率也可能会有所提升。 这个例子中， 使用IN()代替关联查询， 可以让MySQL按照ID顺序进行查询， 这可能比随机的关联要更高效。 我们后续将详细介绍这点。</p>
+</li>
+<li><p>可以减少冗余记录的查询。 在应用层做关联查询， 意味着对千某条记录应用只需要 查询一次，而在数据库中做关联查询，则可能需要重复地访问一部分数据。 从这点看， 这样的重构还可能会减少网络和内存的消耗。</p>
+</li>
+<li><p>更进一步， 这样做相当于在应用中实现了哈希关联， 而不是使用MySQL的嵌套循环关联。 某些场景哈希关联的效率要高很多（本章后续我们将讨论这点）。</p>
+</li>
+</ol>
+<h3 id="6-4查询执行的基础"><a href="#6-4查询执行的基础" class="headerlink" title="6.4查询执行的基础"></a>6.4查询执行的基础</h3><p>当希望MySQL能够以更高的性能运行查询时， 最好的办法就是弄清楚MySQL是如何一点， 很多查询优化工作实际上就是遵循一些原则让优优化和执行查询的。 一且理解这一点，很多查询优化工作实际上就是遵循一些原则让优化器能够按照预想的合理的方式运行。</p>
+<ol>
+<li>客户端发送一条查询给服务器。</li>
+<li>服务器先检查查询缓存， 如果命中了缓存， 则立刻返回存储在缓存中的结果。 否则进入下一阶段。</li>
+<li>服务器端进行SQL解析、 预处理， 再由优化器生成对应的执行计划。</li>
+<li>MySQL根据优化器生成的执行计划， 调用存储引擎的API来执行查询。</li>
+<li>将结果返回给客户端。</li>
+</ol>
+<h4 id="6-4-1-MySQL客户端／服务器通信协议"><a href="#6-4-1-MySQL客户端／服务器通信协议" class="headerlink" title="6.4.1 MySQL客户端／服务器通信协议"></a>6.4.1 MySQL客户端／服务器通信协议</h4><p>一般来说，不需要去理解MySQL通信协议的内部实现细节，只需要大致理解通信协议是如何工作的。 MySQL客户端和服务器之间的通信协议是 “半双工 ” 的， 这意味着，在任何一个时刻， 要么是由服务器向客户端发送数据， 要么是由客户端向服务器发送数据， 这两个动作不能同时发生。 所以， 我们无法也无须将一个消息切成小块独立来 发送。<br>这种协议让MySQL通信简单快速， 但是也从很多地方限制了MySQL。 一个明显的限制 是， 这意味着没法进行流量控制。 一且一端开始发生消息， 另一端要接收完整个消息才能响应它。 这就像来回抛球的游戏：在任何时刻， 只有一个人能控制球， 而且只有控制球的人才能将球抛回去（发送消息）。</p>
+<ul>
+<li><p>查询状态<br>对于一 个MySQL 连接，或者说一个线程，任何时刻都有一 个状态，该状态表示了 MySQL当前正在做什么。有很多种方式能查看当前的状态，最简单的是使用SHOW FULL PROCESS LIST命令（该命令返回 结果中的Command 列就表示当前的状态）。在一 个查询的生命周期中，状态会变化很多次。MySQL官方手册中对这 些状态值的含义有最权威的解释，下面 将这些状态列出来，并做一 个简单的解释。</p>
+<ul>
+<li><p>Sleep ： 线程正在等待客户端发送新的请求。</p>
+</li>
+<li><p>Query ： 线程正在执行查询 或者正在将结果发送给客户端。</p>
+</li>
+<li><p>Locked ：在MySQL服务器层，该线程正在等待表 锁。在存储引擎级别实现的锁，例如 InnoDB的行锁，并不会体现在线程状态中。对千MyISAM来说这是一 个比较典型的状态，但在其他没有行锁的引擎中也经常会出现。</p>
+</li>
+<li><p>Analyzing and statistics ：线程正在收集存储引擎的统计信息，井生成查询的执行计划。 </p>
+</li>
+<li><p>Copying to tmp table [on disk] ： 线程正在执行查询，并且将其结果集都复制到一个临时表中，这种状态一般要么是<br>在做GROUP BY操作，要么是文件排序操作，或者是UNION操作。如果这个状态后面<br>还有”on disk”标记，那表示MySQL正在将一个内存临时表放到磁盘上。</p>
+</li>
+<li><p>Sorting result ：线程正在对结果集进行排序。</p>
+</li>
+<li><p>Sending data ：这表示多种情况：线程可能在多个状态之间传送数据， 或者在生成结果集， 或者在向客户端返回数据。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-4-2查询缓存"><a href="#6-4-2查询缓存" class="headerlink" title="6.4.2查询缓存"></a>6.4.2查询缓存</h4><p>在解析一个查询语句之前， 如果查询缓存是打开的， 那么MySQL会优先检查这个查询是否命中查询缓存中的数据。 这个检查是通过一个对大小写敏感的哈希查找实现的。 查询和缓存中的查询即使只有一个字节不同， 那也不会匹配缓存结果注 11’ 这种情况下查询就会进入下一阶段的处理。<br>如果当前的查询恰好命中了查询缓存， 那么在返回查询结果之前MySQL会检查一次用户权限。 这仍然是无须解析查询SQL语句的， 因为在查询缓存中已经存放了 当前查询需要访问的表信息。 如果权限没有问题， MySQL会跳过所有 其他阶段， 直接从缓存中拿到结果并返回给客户端。 这种情况下，查询不会被解析，不用生成执行计划，不会被执行。在第7章中的查询缓存一节， 你将学习到更多细节。</p>
+<h4 id="6-4-3查询优化处理"><a href="#6-4-3查询优化处理" class="headerlink" title="6.4.3查询优化处理"></a>6.4.3查询优化处理</h4><p>查询的生命周期的下一步是将一个SQL转换成一个执行计划， MySQL再依照这个执行计划和存储引擎进行交互。 这包括多个子阶段：解析SQL、 预处理 、 优化SQL执行计划。这个过程中任何错误（例如语法错误）都可能终止查询。 这里不打算详细介绍MySQL内部实现， 而只是选择性地介绍其中几个独立的部分， 在实际执行中， 这几部分可能一起执行也可能单独执行。 我们的目的是帮助大家理解MySQL如何执行查询， 以便写出更优秀的查询。</p>
+<p>语法解析器和预处理<br>        首先， MySQL通过关键字将SQL语句进行解析， 并生成 一棵对应的 “ 解析树 ” 。 MySQL解析器将使用MySQL语法规则验证和解析查询。 例如， 它将验证是否使用错误的关键字，或者使用关键字的顺序是否正确等，再或者它还会验证引号是否能前后正确匹配。</p>
+<pre><code>预处理器则根据一些MySQL规则进一步检查解析树是否合法，例如，这里将检查数据表和数据列是否存在，还会解析名字和别名，看看它们是否有歧义。    
+
+下一步预处理器会验证权限。 这通常很快，除非服务器上有非常多的权限配置。
+</code></pre><p>查询优化器<br>        现在语法树被认为是合法的了，并且由优化器将其转化成执行计划。 一条查询可以有很 多种执行方式，最后都返回相同的结果。 优化器的作用就是找到这其中最好的执行计划。</p>
+<pre><code>MySQL使用基于成本的优化器，它将尝试预测一个查询使用某种执行计划时的成本，并选择其中成本最小的一个。 最初，成本的最小单位是随机读取一个4K数据页的成本，后来（成本计算公式）变得更加复杂，井且引入了一些 “因子” 来估算某些操作的代价， 如当执行一次WHERE条件比较的成本。 可以通过查询当前会话的Last_query_cost的值来得知MySQL计算的当前查询的成本。
+
+有很多种原因会导致MySQL优化器选择错误的执行计划，如下所示：
+</code></pre><ol>
+<li><p>统计信息不准确。 MySQL依赖存储引擎提供的统计信息来评估成本，但是有的存储引擎提供的信息是准确的，有的偏差可能非常大。 例如，InnoDB因为其MVCC的架构，井不能维护一个数据表的行数的精确统计信息。</p>
+</li>
+<li><p>执行计划中的成本估算不等同于实际执行的成本。 所以即使统计信息精准，优化器给出的执行计划也可能不是最优的。 例如有时候某个执行计划虽然需要读取更多的页面，但是它的成本却更小。因为如果这些页面都是顺序读或者这些页面都已经在内存中的话，那么它的访问成本将很小。</p>
+</li>
+<li><p>MySQL层面并不知道哪些页面在内存中、哪些在磁盘上，所以查询实际执行过程中到底需要多少次物理1/0是无法得知的。 MySQL的最优可能和你想的最优不一样。你可能希望执行时间尽可能的短，但是MySQL只是基于其成本模型选择最优的执行计划，而有些时候这井不是最快的执行 方式。所以，这里我们看到根据执行成本来选择执行计划并不是完美的模型。</p>
+</li>
+<li><p>MySQL从不考虑其他并发执行的查询，这可能会影响到当前查询的速度。 </p>
+</li>
+<li><p>MySQL也井不是任何时候都是基于成本的优化。有时也会基千一些固定的规则，例如，如果存在全文搜索的MATCH()子句，则在存在全文索引的时候就使用全文索引。即使有时候使用别的索引和WHERE条件可以远比这种方式要快，MySQL也仍然会使用对应的全文索引。</p>
+</li>
+<li><p>MySQL不会考虑不受其控制的操作的成本，例如执行存储过程或者用户自定义函数的成本。</p>
+</li>
+<li><p>后面我们还会看到，优化器有时候无法去估算所有可能的执行计划，所以它可能错过实际上最优的执行计划。</p>
+<p>  MySQL的查询优化器是一个非常复杂的部件，它使用了很多优化策略来生成一个最优的执行计划。优化策略可以简单地分为两种，一种是静态优化，一种是动态优化。静态优化可以直接对解析树进行分析，井完成优化。例如，优化器可以通过一些简单的代数变换将WHERE条件转换成另一种等价形式。静态优化不依赖于特别的数值，如WHERE条件中带入的一些常数等。静态优化在第一次完成后就一直有效，即使使用不同的参数重复执行查询也不会发生变化。可以认为这是一种“ 编译时优化”。</p>
+<p>  相反，动态优化则和查询的上下文有关，也可能和很多其他因素有关，例如WHERE条件中的取值、索引中条目对应的数据行数等。这需要在每次查询的时候都重新评估，可以认为这是“运行时优化”。</p>
+<p>  在执行语句和存储过程的时候，动态优化和静态优化的区别非常重要。MySQL对查询的静态优化只需要做一次，但对查询的动态优化则在每次执行时都需要重新评估。有时候甚至在查询的执行过程中也会重新优化。注12</p>
+</li>
+</ol>
+<p>下面是一些MySQL能够处理的优化类型：</p>
+<ul>
+<li><p>重新定义关联表的顺序  </p>
+<pre><code>数据表的关联井不总是按照在查询中指定的顺序进行。决定关联的顺序是优化器很重要的一部分功能，本章后面将深入介绍这一点。
+</code></pre></li>
+</ul>
+<p>将外连接转化成内连接</p>
+<pre><code>并不是所有的OUTER JOIN语句都必须以外连接的方式执行。诸多因素，例如WHERE条件、库表结构都可能会让外连接等价于一个内连接。MySQL能够识别这点并重写查询，让其可以调整关联顺序。
+</code></pre><p>使用等价变换规则</p>
+<pre><code>MySQL可以使用一些等价变换来简化并规范表达式。它可以合并和减少一些比较，还可以移除一些恒成立和一些恒不成立的判断。这些规则对于我们编写条件语句很有用，我们将在本章后续继续讨论。
+</code></pre><p>优化COUNT()、MIN()和MAX()</p>
+<pre><code>索引和列是否可为空通常可以帮助MySQL优化这类表达式。例如，要找到某一列的最小值，只需要查询对应B-Tree索引最左端的记录，MySQL可以直接获取索引的第一行记录。在优化器生成执行计划的时候就可以利用这一点，在B-Tree索引中，优化器会将这个表达式作为一个常数对待。类似的，如果要查找一个最大值，也只需读取B-Tree索引的最后一条记录。如果MySQL使用了这种类型的优化，那么在EXPLAIN中就可以看到&quot;Select tables optimized away&quot;。从字面意思可以看出，它表示优化器已经从执行计划中移除了该表，并以一个常数取而代之。类似的，没有任何WHERE条件的COUNT(*)查询通常也可以使用存储引擎提供的一些优化（例如，MylSAM维护了一个变量来存放数据表的行数）。
+</code></pre><ul>
+<li><p>预估并转化为常数表达式</p>
+<pre><code>当MySQL检测到一个表达式可以转化为常数的时候，就会一直把该表达式作为常数进行优化处理。例如，一个用户自定义变址在查询中没有发生变化时就可以转换为一个常数。数学表达式则是另一种典型的例子。
+
+让人惊讶的是，在优化阶段，有时候甚至一个查询也能够转化为一个常数。一个例子是在索引列上执行MIN()函数。甚至是主键或者唯一键查找语句也可以转换为常数表达式。如果WHERE子句中使用了该类索引的常数条件，MySQL可以在查询开始阶段就先查找到这些值，这样优化器就能够知道井转换为常数表达式。
+</code></pre></li>
+<li><p>覆盖索引扫描</p>
+<pre><code>当索引中的列包含所有查询中需要使用的列的时候，MySQL就可以使用索引返回需要的数据， 而无须查询对应的数据行， 在前面的章节中我们已经讨论过这点了。
+</code></pre></li>
+<li><p>子查询优化</p>
+<pre><code>MySQL在某些情况下可以将子查询转换一种效率更高的形式， 从而减少多个查询多次对数据进行访问。
+</code></pre></li>
+<li><p>提前终止查询</p>
+<pre><code>在发现已经满足查询需求的时候，MySQL总是能够立刻终止查询。一个典型的例子就是当使用了LIMIT子句的时候。除此之外，MySQL还有几类情况也会提前终止查询， 例如发现了一个不成立的条件， 这时MySQL可以立刻返回一个空结果。
+</code></pre></li>
+<li><p>等值传播</p>
+</li>
+</ul>
+<p>如果 两个列的值通过等式关联，那么MySQL能够把其中一个列的WHERE条件传递到另一列上。</p>
+<ul>
+<li><p>列表IN()的比较</p>
+<pre><code>在很多数据库系统中，IN()完全等同于多个OR条件的子句， 因为这 两者是完全等价的。 在MySQL中这点是不成立的，MySQL将 IN()列表中的数据先进行排序，然后通过二分查找的方式来确定列表中的值是否满足条件，这是一个 O(log n)复杂度的操作，等价地转换成OR查询的复杂度为 O(n), 对千IN()列表中有大量取值的时候，MySQL的处理速度将会更快。
+
+上面列举的远不是MySQL优化器的全部，MySQL还会做大量其他的优化，即使本章全 部用来描述也会篇幅不足，但上面的这些例子已经足以让大家明白优化器的复杂性和智能性了。
+</code></pre></li>
+<li><p>数据和索引的统计信息<br>MySQL如何执行关联查询</p>
+<pre><code>MySQL中“关联” 词所包含的意义比一般意义上理解的要更广泛。总的来说，MySQL认为任何一个查询都是一次“关联”—— 并不仅仅是一个查询需要到两个表
+</code></pre></li>
+</ul>
+<p>匹配才叫关联，所以在MySQL中，每一个查询，每一个片段（包括子查询，甚至基于单表的SELECT) 都可能是关联。</p>
+<pre><code>所以，理解MySQL如何执行关联查询至关重要。我们先来看一个UNION查询的例子。对于UNION查询，MySQL先将一系列的单个查询结果放到一个临时表中，然后再重新读出临时表数据来完成UNION查询。在MySQL的概念中，每个查询都是一次关联，所以读取结果临时表也是一次关联。
+
+当前MySQL关联执行的策略很简单： MySQL对任何关联都执行嵌套循环关联操作，即MySQL先在一个表中循环取出单条数据，然后再嵌套循环到下一个表中寻找匹配的行，依次下去，直到找到所有表中匹配的行为止。然后根据各个表匹配的行，返回查询中需要的各个列。MySQL会尝试在最后一个关联表中找到所有匹配的行，如果最后一个关联表无法找到更多的行以后， MySQL返回到上一层次关联表， 看是否能够找到更多的匹配记录， 依此类推迭代执行。 
+
+按照这样的方式查找第一个表记录， 再嵌套查询下一个关联表， 然后回溯到上一个表，在MySQL中是通过嵌套循环的方式实现一正如其名 “嵌套循环关联”。
+</code></pre><ul>
+<li><p>执行计划</p>
+<pre><code>和很多其他关系数据库不同， MySQL井不会生成查询字节码来执行查询。 MySQL生成 查询的一棵指令树， 然后通过存储引擎执行完成这棵指令树井返回结果。 最终的执行计划包含了重构查询的全部信息。 如果对某个查询执行EXPLAIN EXTENDED后， 再执行SHOW WARNINGS, 就可以看到重构出的查询.
+</code></pre></li>
+<li><p>关联查询优化器</p>
+<pre><code>MySQL优化器最重要的一部分就是关联查询优化， 它决定了多个表关联时的顺序。 通常多表关联的时候， 可以有多种不同的关联顺序来获得相同的执行结果。 关联查询优化器则通过评估不同顺序时的成本来选择一个代价最小的关联顺序。
+</code></pre></li>
+<li><p>排序优化</p>
+<pre><code>无论如何排序都是一个成本很高的操作，所以从性能角度考虑，应尽可能避免排序或者尽可能避免对大量数据进行排序。
+
+如果需要排序的数据量小于 “排序缓冲区&quot;, MySQL使用内存进行 “快速排序” 操作。 如果内存不够排序，那么MySQL会先将数据分块， 对每个独立的块使用 “快速排序” 进行排序，并将各个块的排序结果存放在磁盘上，然后将各个排好序的块进行合并 最后返回排序结果。
+</code></pre></li>
+<li><p>单次传输排序（新版本使用）</p>
+<pre><code>先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果。这个算法只在MySQL 4.1和后续更新的版本才引入。 因为不再需要从数据表中读取两次数据，对于I/O密集型的应用，这样做的效率高了很多。另外，相比两次传输排序，这个算法只需要一次顺序1/0 读取所有的数据，而无须任何的随机I/O。 缺点是，如果需要返回的列非常多、 非常大，会额外占用大量的空间，而这些列 对排序操作本 身来说是没有任何作用的。 因为单条排序记录很大，所以可能会有更多的排序块需要合并。
+</code></pre></li>
+</ul>
+<h4 id="6-4-4查询执行引擎"><a href="#6-4-4查询执行引擎" class="headerlink" title="6.4.4查询执行引擎"></a>6.4.4查询执行引擎</h4><pre><code>在解析和优化阶段，MySQL将生成查询对应的执行计划，MySQL的查询执行引擎则根据这个执行计划来完成整个查询。 这里执行计划是一个数据结构， 而不是和很多其他的关系型数据库那样会生成对应的字节码。
+
+相对于查询优化阶段， 查询执行阶段不是那么复杂：MySQL只是简单地根据执行计划给出的指令逐步执行。
+</code></pre><h4 id="6-4-5返回结果给客户端"><a href="#6-4-5返回结果给客户端" class="headerlink" title="6.4.5返回结果给客户端"></a>6.4.5返回结果给客户端</h4><pre><code>查询执行的最后一个阶段是将结果返回给客户端。 即使查询不需要返回结果集给客户端， MySQL仍然会返回这个查询的一些信息， 如该查询影响到的行数。
+
+如果查询可以被缓存， 那么MySQL在这个阶段也会将结果存放到查询缓存中。MySQL将结果集返回客户端是一个增量、 逐步返回的过程。
+
+这样处理有两个好处：服务器端无须存储太多的结果， 也就不会因为要返回太多结果而 消耗太多内存。 另外， 这样的处理也让MySQL客户端第一时间获得返回的结果。
+
+结果集中的每一行都会以一个满足MySQL客户端／服务器通信协议的封包发送， 再通过TCP协议进行传输， 在TCP传输的过程中， 可能对MySQL的封包进行缓存然后批量传输。
+</code></pre><h3 id="6-5-MySQL查询优化器的局限性"><a href="#6-5-MySQL查询优化器的局限性" class="headerlink" title="6.5 MySQL查询优化器的局限性"></a>6.5 MySQL查询优化器的局限性</h3><pre><code>MySQL的万能 ”嵌套循环” 并不是对每种查询都是最优的。 不过还好， MySQL查询优化器只对少部分查询不适用， 而且我们往往可以通过改写查询让MySQL高效地完成工作。
+</code></pre><h4 id="6-5-1关联子查询"><a href="#6-5-1关联子查询" class="headerlink" title="6.5.1关联子查询"></a>6.5.1关联子查询</h4><pre><code>MySQL的子查询实现得非常糟糕。 最糟糕的一类查询是WHERE条件中包含IN()的子查询语句。使用IN()加子查询， 性能经常会非常糟， 所以 通常建议使用EXISTS()等效的改写查询来获取更好的效率。
+</code></pre><ul>
+<li>如何用好关联子查询<br>并不是所有关联子查询的性能都会很差。 如果有人跟你说：“别用关联子查询”‘ 那么不要理他。 先测试，然后做出自己的判断。 很多时候，关联子查询是一种非常合理、 自然， 甚至是性能最好的写法。</li>
+</ul>
+<h4 id="6-5-2-UNION的限制"><a href="#6-5-2-UNION的限制" class="headerlink" title="6.5.2 UNION的限制"></a>6.5.2 UNION的限制</h4><pre><code>有时，MySQL无法将限制条件从外层 “下推” 到内层，这使得原本能够限制部分返回结果的条件无法应用到内层查询的优化上。
+
+如果希望UNION的各个子句能够根据LIMIT只取部分结果集，或者希望能够先排好序再合并结果集的话，就需要在UNION的各个子句中分别使用这些子句。
+</code></pre><h4 id="6-5-3索引合并优化"><a href="#6-5-3索引合并优化" class="headerlink" title="6.5.3索引合并优化"></a>6.5.3索引合并优化</h4><pre><code>在5.0和更新的版本中，当WHERE子句中包含多个复杂条件的 时候，MySQL能够访问单个表的多个索引以合井和交叉过滤的方式来定位需要查找的行
+</code></pre><h4 id="6-5-4等值传递"><a href="#6-5-4等值传递" class="headerlink" title="6.5.4等值传递"></a>6.5.4等值传递</h4><pre><code>某些时候，等值传递会带来一些意想不到的额外消耗。 例如，有一个非常大的IN()列表，而MySQL优化器发现存在WHERE、 ON或者USING的子句， 将这个列表的值和另一个表的某个列相关联。
+
+那么优化器会将IN()列表都复制应用到关联的各个表中。 通常， 因为各个表新增了过滤条件， 优化器可以更高效地从存储引擎过滤记录。 但是如果这个列表非常大， 则会导致优化和执行都会变慢。
+</code></pre><h4 id="6-5-5并行执行"><a href="#6-5-5并行执行" class="headerlink" title="6.5.5并行执行"></a>6.5.5并行执行</h4><pre><code>MySQL无法利用多核特性来井行执行查询。 很多其他的关系型数据库能够提供这个特性，但是MySQL做不到。 这里特别指出是想告诉读者不要花时间去尝试寻找并行执行查询的方法。
+</code></pre><h3 id="6-7优化特定类型的查询"><a href="#6-7优化特定类型的查询" class="headerlink" title="6.7优化特定类型的查询"></a>6.7优化特定类型的查询</h3><h4 id="6-7-1优化COUNT-查询"><a href="#6-7-1优化COUNT-查询" class="headerlink" title="6.7.1优化COUNT()查询"></a>6.7.1优化COUNT()查询</h4><pre><code>COUNT ()是一个特殊的函数， 有两种非常不同的作用：它可以统计某个列值的数量， 也 可以统计行数。 在统计列值时要求列值是非空的（不统计 NULL)。如果在 COUNT() 的括号中指定了列或者列的表达式， 则统计的就是这个表达式有值的结果数注 24。因为很多人 对 NULL 理解有问题， 所以这里很容易产生误解。 如果想了解更多关于SQL语句中 NULL 的含义， 建议阅读一些关千SQL语句基础的书籍。（关千这个话题， 互联网上的一些信息是不够精确的。）
+
+COUNT ()的另一个作用是统计结果集的行数。 当MySQL确认括号内的表达式值不可能为空时， 实际上就是 在统计行数。 最简单的就是当我们使用 COUNT(*) 的时候， 这种情况下通配符＊井不会像我们猜想的那样扩展成所有的列，实际上，它会忽略所有的列而直接统计所有的行数。
+</code></pre><h4 id="6-7-2优化关联查询"><a href="#6-7-2优化关联查询" class="headerlink" title="6.7.2优化关联查询"></a>6.7.2优化关联查询</h4><p>这个话题基本上整本书都在讨论， 这里需要特别提到的是：</p>
+<p>•    确保 ON 或者US ING子句中的列上有索引。在创建索引的时候就要考虑到关联的顺序。当表A和表B用列c关联的时候， 如果优化器的关联顺序是B、A, 那么就不需要在 B表的对应列上建上索引。 没有用到的索引只会带来额外的负担。 一般来说， 除非 有其他理由， 否则只需要在关联顺序中的第二个表的相应列上创建索引。</p>
+<p>•    确保任何的GROUP BY和ORDER BY中的表达式只涉及到一个表中的列， 这样MySQL才有可能使用索引来优化这个过程。</p>
+<p>•    当升级MySQL的时候需要注意：关联语法 、 运算符优先级等其他可能会发生变化 的地方。 因为以前是普通关联的地方可能会变成笛卡儿积， 不同类型的关联可能会 生成不同的结果等。</p>
+<h4 id="6-7-3优化子查询"><a href="#6-7-3优化子查询" class="headerlink" title="6.7.3优化子查询"></a>6.7.3优化子查询</h4><pre><code>关于子查询优化我们给出的最重要的优化建议就是尽可能使用关联查询代替， 至少当前的MySQL版本需要这样。 本章的前面章节已经详细介绍了这点。 “尽可能使用关联” 并不是绝对的， 如果使用的是MySQL5.6或更新的版本或者MariaDB, 那么就可以直接忽略关于子查询的这些建议了。
+</code></pre><h3 id="6-7-4优化GROUP-BY和DISTINCT"><a href="#6-7-4优化GROUP-BY和DISTINCT" class="headerlink" title="6.7.4优化GROUP BY和DISTINCT"></a>6.7.4优化GROUP BY和DISTINCT</h3><pre><code>在MySQL中， 当无法使用索引的时候， GROUP BY使用两种策略来完成：使用临时表或者文件排序来做分组。
+
+如果需要对关联查询做分组(GROUP BY), 并且是按照查找表中的某个列进行分组， 那么通常采用查找表的标识列分组的效率会比其他列更高。
+</code></pre><h4 id="6-7-5优化LIMIT分页"><a href="#6-7-5优化LIMIT分页" class="headerlink" title="6.7.5优化LIMIT分页"></a>6.7.5优化LIMIT分页</h4><pre><code>优化此类分页查询的一个最简单的办法就是尽可能地使用索引覆盖扫描， 而不是查询所 有的列。 然后根据需要做一次关联操作再返回所需的列。 对于偏移量很大的时候， 这样做的效率会提升非常大。
+
+
+
+这里的 延迟关联将大大提升查询效率，它让MySQL扫描尽可能少的页面，获取需要访问的记录 后再根据关联列回原表查询需要的所有列。这个技术也可以用于优化关联查询中的LIMIT子句。
+</code></pre><h4 id="6-7-7优化UNION查询"><a href="#6-7-7优化UNION查询" class="headerlink" title="6.7.7优化UNION查询"></a>6.7.7优化UNION查询</h4><pre><code>除非确实需要服务器消除 重复的行，否则就一定要使用UNION ALL, 这一点很重要。 如 果没有ALL关键字，MySQL会给临时表加上 DISTINCT选项，这会导致对整个临时表的 数据做唯一性检查。 这样做的代价非常高。 即使有 ALL关键字， MySQL仍然会使用临时表存储结果。 事实上，MySQL总是将结果放入临时表，然后再读出，再返回给客户端。虽然很多时候这样做是没有必要的（例如，MySQL可以直接把这些 结果返回给客户端）。
+</code></pre></div><div class="tags"><a href="/tags/高性能MySQL/">高性能MySQL</a></div><div class="post-nav"><a class="next" href="/mysql-part5.html">创建高性能的索引</a></div><div id="SOHUCS" sid="1535197990000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
+</script></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://blog.beere.cn"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/高性能MySQL/" style="font-size: 15px;">高性能MySQL</a> <a href="/tags/工具/" style="font-size: 15px;">工具</a> <a href="/tags/Redis/" style="font-size: 15px;">Redis</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/mysql-part6.html">查询性能优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part5.html">创建高性能的索引</a></li><li class="post-list-item"><a class="post-list-link" href="/sort.html">排序算法总结</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part4.html">Schema 与数据类型优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part3.html">服务器性能剖析</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part2.html">MySQL基准测试</a></li><li class="post-list-item"><a class="post-list-link" href="/redis1.html">关于Redis</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part1.html">MySQL架构与历史</a></li><li class="post-list-item"><a class="post-list-link" href="/gantt.html">XMind 8免费激活方法</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-plan.html">高性能MySQL阅读计划</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">DGH.</a> Powered by<a rel="external nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="external nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="external nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a><br/><span class="article-traffic" id="busuanzi_container_site_pv">本站总访问量&nbsp;<span id="busuanzi_value_site_pv"></span> 次&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="article-traffic" id="busuanzi_container_site_uv">本站访客数&nbsp;<span id="busuanzi_value_site_uv"></span> 人次</span></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
