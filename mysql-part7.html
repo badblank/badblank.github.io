@@ -97,75 +97,87 @@
 </ol>
 </li>
 <li><p>系统变量</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">character_set_server：默认的内部操作字符集</span><br><span class="line">character_set_client：客户端来源数据使用的字符集</span><br><span class="line">character_set_connection：连接层字符集</span><br><span class="line">character_set_results：查询结果字符集</span><br><span class="line">character_set_database：当前选中数据库的默认字符集</span><br><span class="line">character_set_system：系统元数据(字段名等)字符集</span><br></pre></td></tr></table></figure>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">character_set_server：默认的内部操作字符集</span><br><span class="line">character_set_client：客户端来源数据使用的字符集</span><br><span class="line">character_set_connection：连接层字符集</span><br><span class="line">character_set_results：查询结果字符集</span><br><span class="line">character_set_database：当前选中数据库的默认字符集</span><br><span class="line">character_set_system：系统元数据(字段名等)字符集</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>相关命令</p>
 <ol>
-<li>查看系统支持字符集<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SHOW CHARACTER SET; #查看支持字符集</span><br><span class="line">SHOW COLLATION;     #查看支持校验</span><br><span class="line">show variables like &apos;collation_%&apos;;</span><br></pre></td></tr></table></figure>
+<li><p>查看系统支持字符集</p>
+   <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">      SHOW CHARACTER SET; #查看支持字符集</span><br><span class="line">      SHOW COLLATION;     #查看支持校验</span><br><span class="line">      show variables like &apos;collation_%&apos;;</span><br><span class="line">      ```  </span><br><span class="line"></span><br><span class="line">2. 设置系统字符集</span><br><span class="line">    ```angular2html</span><br><span class="line">    SET character_set_client = utf8 ;  </span><br><span class="line">    SET character_set_connection = utf8 ;   </span><br><span class="line">    SET character_set_database = utf8 ;   </span><br><span class="line">    SET character_set_results = utf8 ;    </span><br><span class="line">    SET character_set_server = utf8 ;  </span><br><span class="line">    </span><br><span class="line">    SET collation_connection = utf8 ;  </span><br><span class="line">    SET collation_database = utf8 ;   </span><br><span class="line">    SET collation_server = utf8 ; </span><br><span class="line">    ######### SET NAMES 命令相当与执行了  character_set_client， character_set_connection，character_set_results</span><br><span class="line">    SET NAMES UTF8</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看系统字符集</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE &apos;character%&apos;;</span><br><span class="line">STATUS;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看表的默认字符集</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1. show create table `t1`;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置表的字符集</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table `t1` charset=gbk;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看字段字符集</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show full columns from t1;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改字段字符集</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table t1 change `name`  `name` varchar(20) character set utf8  COLLATE utf8_bin not null default &apos;&apos;;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+<li><p>字符集继承顺序</p>
+<ol>
+<li>SERVER-&gt;DB-&gt;TABLE-&gt;COLUMN</li>
+</ol>
+</li>
+<li><p>注意点  </p>
+<ol>
+<li>character_set_client 字符集要和客户端字符集保持一致，否者多字节字符会出现乱码</li>
+<li>LENGTH函数和CHAR_LENGTH函数的区别LENGTH计算字符数，CHAR_LENGTH计算字节数,多字节字符这两个函数的结果会不一样</li>
+<li>字符集会影响临时表的分配UTF8字符集会按最大字节数分配就算存的全是字母，也是按每个字符三个字节分配</li>
+<li>影响索引的最长索引前缀（不同版本的MySQL最长索引前缀不同，单位按字节算） <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">create table t2 (</span><br><span class="line">    id int not null auto_increment primary key, </span><br><span class="line">    `name` varchar(1025) not null default &apos;&apos;, </span><br><span class="line">    key(`name`)</span><br><span class="line">) engine=innodb charset =utf8;</span><br><span class="line">ERROR 1071 (42000): Specified key was too long; max key length is 3072 bytes</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+<li><p>绑定变量</p>
+<ol>
+<li>使用场合<br>当查询语句的解析和执行计划生成消耗了主要的时间，那么绑定变量可以在一定程度上解决问题，因为只需要解析一次，对于大量重复类型的查询语句，<br>性能会有很大的提高。</li>
+<li>高效的原因<ol>
+<li>在服务端只需要解析一次  </li>
+<li>在服务端的某些优化器的工作只需要执行一次，因为会缓存一部分执行计划。</li>
+<li>一二进制的方式只发送参数和句柄， 比起每次都发送ASCII码文本效率高，一个二进制的日期只需要三个字节，但如果是ASCII码则需要十个字节</li>
+<li>仅仅是参数—-而不是整个查询语句—-需要发送到服务器，所以网络开销会更小。</li>
+<li>MySQL在存储参数的时候，直接将其存放在缓存中，不再需要在内存中多次复制</li>
+</ol>
+</li>
+<li>绑定变量安全性相对较高（任何时候都不要相信用户的数据，即使是绑定变量）<ol>
+<li>无需在应用程序中处理转义，操作更简便，大大减少了SQL注入和攻击的风险</li>
+</ol>
+</li>
+<li>绑定变量的优化<ol>
+<li>准备阶段<br>服务器解析SQL语句，移除不可能的条件，并且重写子查询</li>
+<li>在第一次执行的时候<br>如果可能， 服务器先简化嵌套循环的关联，并将外关联转化成内关联</li>
+<li>在每次SQL语句执行时  <ol>
+<li>过滤分区</li>
+<li>如果可能的话， 尽量移除COUNT(),MIN(),MAX()</li>
+<li>移除常量表达式</li>
+<li>检测常量表</li>
+<li>做必要的等值传播</li>
+<li>分析和优化ref、 range和索引优化等访问数据的方式</li>
+<li>优化关联顺序</li>
+</ol>
+</li>
+<li>绑定变量的限制<ol>
+<li>绑定变量是会话级别的，所以连接之间不能共用绑定句柄，一旦连接断开，原来的句柄就不能使用（连接池和持久连接一定程度上缓解这个问题）</li>
+<li>在MySQL5.1之前不能使用查询缓存</li>
+<li>如果只是执行一次SQL，那么使用绑定变量的方式无疑比直接执行多了一次额外的准备阶段消耗，还需要一次额外的网络开销</li>
+<li>如果总是忘记释放绑定变量资源，服务器很容易发生资源泄漏，绑定变量的SQL总数是一个全局限制</li>
+</ol>
+</li>
+<li>相关命令 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SET @sql := &apos;select * from `t1` where `name` = ?&apos;;</span><br><span class="line">PREPARE stmt_fetch FROM @sql;</span><br><span class="line">SET @name :=&apos;a&apos;;</span><br><span class="line">EXECUTE stmt_fetch USING @name;</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
 </li>
 </ol>
 </li>
 </ol>
-<pre><code>    2. 设置系统字符集
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">SET character_set_client = utf8 ;  </span><br><span class="line">SET character_set_connection = utf8 ;   </span><br><span class="line">SET character_set_database = utf8 ;   </span><br><span class="line">SET character_set_results = utf8 ;    </span><br><span class="line">SET character_set_server = utf8 ;  </span><br><span class="line"></span><br><span class="line">SET collation_connection = utf8 ;  </span><br><span class="line">SET collation_database = utf8 ;   </span><br><span class="line">SET collation_server = utf8 ; </span><br><span class="line">######### SET NAMES 命令相当与执行了  character_set_client， character_set_connection，character_set_results</span><br><span class="line">SET NAMES UTF8</span><br></pre></td></tr></table></figure>
-
-    3. 查看系统字符集
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE &apos;character%&apos;;</span><br><span class="line">STATUS;</span><br></pre></td></tr></table></figure>
-
-    4. 查看表的默认字符集
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1. show create table `t1`;</span><br></pre></td></tr></table></figure>
-
-    5. 设置表的字符集
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table `t1` charset=gbk;</span><br></pre></td></tr></table></figure>
-
-    6. 查看字段字符集
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show full columns from t1;</span><br></pre></td></tr></table></figure>
-
-    7. 修改字段字符集
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table t1 change `name`  `name` varchar(20) character set utf8  COLLATE utf8_bin not null default &apos;&apos;;</span><br></pre></td></tr></table></figure>
-
-4. 字符集继承顺序
-    1. SERVER-&gt;DB-&gt;TABLE-&gt;COLUMN
-5. 注意点  
-    1. character_set_client 字符集要和客户端字符集保持一致，否者多字节字符会出现乱码
-    2. LENGTH函数和CHAR_LENGTH函数的区别LENGTH计算字符数，CHAR_LENGTH计算字节数,多字节字符这两个函数的结果会不一样
-    3. 字符集会影响临时表的分配UTF8字符集会按最大字节数分配就算存的全是字母，也是按每个字符三个字节分配
-    4. 影响索引的最长索引前缀（不同版本的MySQL最长索引前缀不同，单位按字节算）
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">create table t2 (</span><br><span class="line">    id int not null auto_increment primary key, </span><br><span class="line">    `name` varchar(1025) not null default &apos;&apos;, </span><br><span class="line">    key(`name`)</span><br><span class="line">) engine=innodb charset =utf8;</span><br><span class="line">ERROR 1071 (42000): Specified key was too long; max key length is 3072 bytes</span><br></pre></td></tr></table></figure>
-
-3. 绑定变量
-    1. 使用场合  
-    当查询语句的解析和执行计划生成消耗了主要的时间，那么绑定变量可以在一定程度上解决问题，因为只需要解析一次，对于大量重复类型的查询语句，
-    性能会有很大的提高。
-    2. 高效的原因
-        1. 在服务端只需要解析一次  
-        2. 在服务端的某些优化器的工作只需要执行一次，因为会缓存一部分执行计划。
-        3. 一二进制的方式只发送参数和句柄， 比起每次都发送ASCII码文本效率高，一个二进制的日期只需要三个字节，但如果是ASCII码则需要十个字节
-        4. 仅仅是参数----而不是整个查询语句----需要发送到服务器，所以网络开销会更小。
-        5. MySQL在存储参数的时候，直接将其存放在缓存中，不再需要在内存中多次复制
-    3. 绑定变量安全性相对较高（任何时候都不要相信用户的数据，即使是绑定变量）
-        1. 无需在应用程序中处理转义，操作更简便，大大减少了SQL注入和攻击的风险
-    4. 绑定变量的优化
-        1. 准备阶段  
-        服务器解析SQL语句，移除不可能的条件，并且重写子查询
-        2. 在第一次执行的时候  
-        如果可能， 服务器先简化嵌套循环的关联，并将外关联转化成内关联
-        3. 在每次SQL语句执行时  
-            1. 过滤分区
-            2. 如果可能的话， 尽量移除COUNT(),MIN(),MAX()
-            3. 移除常量表达式
-            4. 检测常量表
-            5. 做必要的等值传播
-            6. 分析和优化ref、 range和索引优化等访问数据的方式
-            7. 优化关联顺序
-        4. 绑定变量的限制
-            1. 绑定变量是会话级别的，所以连接之间不能共用绑定句柄，一旦连接断开，原来的句柄就不能使用（连接池和持久连接一定程度上缓解这个问题）
-            2. 在MySQL5.1之前不能使用查询缓存
-            3. 如果只是执行一次SQL，那么使用绑定变量的方式无疑比直接执行多了一次额外的准备阶段消耗，还需要一次额外的网络开销
-            4. 如果总是忘记释放绑定变量资源，服务器很容易发生资源泄漏，绑定变量的SQL总数是一个全局限制
-        5. 相关命令
-            <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SET @sql := &apos;select * from `t1` where `name` = ?&apos;;</span><br><span class="line">PREPARE stmt_fetch FROM @sql;</span><br><span class="line">SET @name :=&apos;a&apos;;</span><br><span class="line">EXECUTE stmt_fetch USING @name;</span><br></pre></td></tr></table></figure>
-</code></pre></div><div class="tags"><a href="/tags/高性能MySQL/">高性能MySQL</a></div><div class="post-nav"><a class="next" href="/mysql-part6.html">查询性能优化</a></div><div id="SOHUCS" sid="1535886231000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
+</li>
+</ol>
+</div><div class="tags"><a href="/tags/高性能MySQL/">高性能MySQL</a></div><div class="post-nav"><a class="next" href="/mysql-part6.html">查询性能优化</a></div><div id="SOHUCS" sid="1535886231000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
 </script></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://blog.beere.cn"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/高性能MySQL/" style="font-size: 15px;">高性能MySQL</a> <a href="/tags/工具/" style="font-size: 15px;">工具</a> <a href="/tags/Redis/" style="font-size: 15px;">Redis</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/mysql-part7.html">MySQL高级特性</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part6.html">查询性能优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part5.html">创建高性能的索引</a></li><li class="post-list-item"><a class="post-list-link" href="/sort.html">排序算法总结</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part4.html">Schema 与数据类型优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part3.html">服务器性能剖析</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part2.html">MySQL基准测试</a></li><li class="post-list-item"><a class="post-list-link" href="/redis1.html">关于Redis</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part1.html">MySQL架构与历史</a></li><li class="post-list-item"><a class="post-list-link" href="/gantt.html">XMind 8免费激活方法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">DGH.</a> Powered by<a rel="external nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="external nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="external nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a><br/><span class="article-traffic" id="busuanzi_container_site_pv">本站总访问量&nbsp;<span id="busuanzi_value_site_pv"></span> 次&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="article-traffic" id="busuanzi_container_site_uv">本站访客数&nbsp;<span id="busuanzi_value_site_uv"></span> 人次</span></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
