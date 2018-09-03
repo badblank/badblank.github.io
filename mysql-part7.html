@@ -333,8 +333,7 @@
     <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">建表语法:</span><br><span class="line">create table search_table</span><br><span class="line">(id int not null</span><br><span class="line">,weight int not null</span><br><span class="line">,query varchar(3070) not null</span><br><span class="line">,group_id int</span><br><span class="line">,INDEX(query)</span><br><span class="line">) engine=Spinx conncet=&quot;sphinx://localhost:3312/test&quot;</span><br><span class="line"></span><br><span class="line">查询语法:(把查询藏在query里,传递给sphinx)</span><br><span class="line">select * from search_table where query=&apos;test;mode=all&apos;;</span><br><span class="line">Searchd服务返回查询结果,存储引擎把数据转换成mysql表.</span><br></pre></td></tr></table></figure>
 
 
-    与ElasticSearch比较:
-    https://zhuanlan.zhihu.com/p/21334385
+    [与ElasticSearch比较](https://zhuanlan.zhihu.com/p/21334385)
 </code></pre><ol start="11">
 <li>分布式事务</li>
 <li>查询缓存</li>
