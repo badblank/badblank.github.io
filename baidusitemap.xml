@@ -4,8 +4,25 @@
 
     
   <url>
+    <loc>http://blog.beere.cn/treeTraversal.html</loc>
+    <lastmod>2018-09-03T10:41:50.293Z</lastmod>
+    <data>
+        <display>
+        <title>面试之树的遍历</title>
+        <pubTime>2018-09-03T10:00:54.000Z</pubTime>
+        
+        <tag>面试</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.beere.cn/mysql-part7.html</loc>
-    <lastmod>2018-09-03T06:08:45.707Z</lastmod>
+    <lastmod>2018-09-03T08:13:20.709Z</lastmod>
     <data>
         <display>
         <title>MySQL高级特性</title>

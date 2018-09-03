@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.beere.cn/treeTraversal.html</loc>
+    
+    <lastmod>2018-09-03T10:41:50.293Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.beere.cn/mysql-part7.html</loc>
     
-    <lastmod>2018-09-03T06:08:45.707Z</lastmod>
+    <lastmod>2018-09-03T08:13:20.709Z</lastmod>
     
   </url>
   
