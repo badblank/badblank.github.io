@@ -84,6 +84,139 @@
 </li>
 </ol>
 </li>
+<li><p>视图：  </p>
+<ol>
+<li><p>视图本身是一个虚拟表，不存放任何数据。<br>在使用sql语句访问视图的时候，它返回的数据是Mysql从其他表生成的。<br>视图和表在同一个命名空间，MySQL在很多地方低于视图和表是同样对待的。<br>不过视图和表也有不同，例如，不能对视图创建触发器，也不呢过使用drop table 命令删除视图</p>
+<ol>
+<li>实现算法有两种:  <ul>
+<li>merge: 合并算法，尽可能使用这个</li>
+<li>Temptable：临时表算法。如果视图中高寒GROUP BU, DISTINCT, 任何聚合函数, UNION, 子查询等<br>只要无法在原表记录和视图记录建立一一映射的场景中，mysql都将用临时表算法实现视图。  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">explain select * from &lt;view_name&gt;</span><br><span class="line">id select_type</span><br><span class="line">1 primary</span><br><span class="line">2 derived</span><br><span class="line">说明该表是由临时表算法实现的。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>可更新视图：<br>　　指可以通过更新这个视图来更新视图涉及的相关表。<br>　　如果视图定义中包含了group by，union 聚合函数，以及其他一些特殊情况，就不能更新。<br>　　更新视图的查询也可以是一个关语句，但是有一个限制，被更新的列必须来自同一个表中。<br>　　另外，所有使用临时表算法实现的视图都无法被更新。  </p>
+<p> 可以使用视图实现基于列的权限控制，却不需要真正的在系统中创建列权限，因为没有额外的开销。</p>
+<p> 使用临时表算法实现的视图，在某些时候性能会很糟糕。<br>mysql以递归的方式执行这类视图，先会执行外层查询，即使外层查询优化器将其优化得很好，但是mysql<br>优化可能无法像其他的数据库那样做更多的内外结合的优化。<br>外层查询的where条件无法下推到构建视图的临时表的查询中，临时表也无法建立索引。</p>
+</li>
+<li>mysql视图的限制：  <ul>
+<li>mysql不支持物化视图（物化视图是指将视图结果数据存放在一个可以查看的表中，并定期从原始表中刷新数据到这个表）</li>
+<li>mysql视图不会保存视图定义的原始sql语句。show create view 会以一种不友好的内部格式呈现。</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>外键约束</p>
+<blockquote>
+<p>InnoDB是目前MySQL中唯一支持外键的内置存储引擎，使用外键是有成本的，比如外键通常都要求每次在修改数据时都要在另外一张表中执行一次查找操作，虽然InnoDB强制外键使用索引，但是无法消除这种约束检查的开销。如果外键列的选择很低，那么导致一个非常大且选择性很低的索引。<br> 外键也会提升一些性能，例如想确保两个相关表始终有一致的数据，那么使用外键比在应用程序中检查一致性的性能要高很多。外键在相关数据的删除和更新上，比在应用中维护高效很多，不过外键维护操作是逐行进行的，这样的更新会比批量删除和更新慢。<br> 如果只是使用外键做约束，那通常在应用程序里实现约束会更好，外键会带来额外的开销！    </p>
+</blockquote>
+</li>
+<li><p>在MySQL内部存储代码  </p>
+<blockquote>
+<p>在MySQL内部存储代码:<br> MySQL允许通过触发器、存储过程、函数的形式来存储代码，MySQL5.1开始还能在定时任务中存放代码，也被称为“事件”，存储过程和存储函数统称为“存储程序”。存储过程和存储函数都可以接收参数然后返回值，到那时触发器和事件却不行。MySQL中使用存储代码的优点：</p>
+</blockquote>
+<p> 1、  在服务器内部执行，离数据近，在服务器上可以节省带宽和网络延迟。</p>
+<p> 2、  这是一种代码重用，可以方便地统一业务规则，保证某些行为总是一致，所以也可以应用提供一定的安全性。</p>
+<p> 3、  简化代码维护和版本更新。</p>
+<p> 4、  提升安全，提供更细粒度的权限控制，比如银行用于转移资金的存储过程：这个存储过程可以在一个事务中完成资金转移和记录用于审计的日志。这个存储过程可以再一个事务中完成资金转移和记录用于审计的日志。</p>
+<p> 5、  服务器端可以缓存存储过程的执行计划，对于需要反复调用的过程，会大大降低消耗。</p>
+<p> 6、  因为是部署在服务端的，所以备份、维护都可以再服务器端完成，所以存储程序的维护工作都会很简单，没有什么外部依赖。</p>
+<p> 7、  可以在应用开发和数据库开发人员之间更好的分工，不过最好是由数据库专家来开发存储过程，因为不是每个应用开发人员都能写出高效的MySQL查询。</p>
+<ul>
+<li><p>存储代码的缺点：</p>
+<p>1、  MySQL本身没有提供好用的开发和调试工具，编写MySQL的存储代码比其他的数据库要更难。</p>
+<p>2、  存储代码比应用程序的代码效率稍差，使用的函数有限，</p>
+<p>3、  存储代码给应用程序代码部署带来额外的复杂性，需要额外布置额外的MySQL内部存储代码</p>
+<p>4、  因为存储程序都在服务器内，所以有安全隐患，攻击者只需要攻破数据库就可以。</p>
+<p>5、  存储过程会给服务器增加额外的压力，数据库服务器的扩展性比应用服务器差。</p>
+<p>6、  MySQL没有选项可以控制存储程序的资源消耗，存储过程的一个下问题，可能直接把服务器拖死。</p>
+<p>7、  MySQL较PL/SQL、T-SQL的存储代码功能还是比较弱</p>
+<p>8、  调试MySQL的存储过程是一个困难的事</p>
+</li>
+</ul>
+<ol>
+<li><p>存储过程和函数</p>
+<blockquote>
+<p>MySQL架构本身和优化器的特性使得存储代码有一些天然的限制,他的性能也受限于此:</p>
+</blockquote>
+<p> 1、  优化器无法使用关键字DETERMINISTIC来优化单个查询中多次调用存储函数的情况</p>
+<p> 2、  优化器无法评估存储函数的执行成本</p>
+<p> 3、  每个连接器都有独立的存储过程的执行计划缓存，如果有多个连接需要调用同一个存储过程，将会浪费缓存空间来反复缓存同样的执行计划，使用的是连接池或者持久化连接那么执行缓存计划可能会有更长的生命周期</p>
+<p> 4、  存储程序和复制是一个诡异组合，如果可以不要复制对存储程序的调用。</p>
+<ul>
+<li>不过，对于一些操作，存储过程比其他的要快得多——特别是当一个存储过程调用可以代替很多小查询的时候，如果查询很小，相比这个查询执行成本，解析和网络开销就变得非常明显。</li>
+</ul>
+</li>
+<li><p>触发器</p>
+<blockquote>
+<p>触发器可以在让你执行INSERT、UPDATE或者DELETE的时候，执行一些特定的操作。可以在MySQL上指定是在SQL语句执行前触发还是在执行后触发，触发器本身不反悔值，但是可以读取或者改变触发SQL语句影响的数据。触发器使用中需要注意几点：</p>
+</blockquote>
+<p> 1、  对每一个表的每一个事件，最多只能定义一个触发器（不能在AFTER INSERT 上定义两个触发器）</p>
+<p> 2、  MySQL只支持基于行的触发，也就是说触发器始终是针对一条记录，而不是针对整个SQL语句。</p>
+<p> 3、  触发器可以掩盖服务器背后的工作一个简单的SQL语句背后，因为触发器可能包含了很多看不见的工作</p>
+<p> 4、  触发器的问题很难排查，如果某个性能问题和触发器相关，很难分析和定位。</p>
+<p> 5、  触发器可能导致死锁和锁等待，如果锁失败那么原来的SQL语句也会失败。</p>
+<p> 如果仅考虑性能，那么MySQL触发器的实现对服务器限制最大的就是它的“基于行的触发”设计，因为性能原因，他很多时候无法使用触发器来维护汇总和缓存表。</p>
+<p> MyISAM触发器无法保证更新的原子性，也就说没有办法回滚操作的,当建立一个AFTER UPDATE的触发器，用来更新另外一个MyISAMbiao ,如果在更新第二张表时候失败，第一张表是不会回滚的。</p>
+<p> InnoDB表上的触发器是在同一个事务中完成的，它们执行操作是原子性的，同时失败或者同时成功。</p>
+</li>
+<li><p>事件<br> MySQL事件类似于Linux的定时任务，不过完全在MySQL内部中实现，可以创建事件让MySQL在某一个时候执行一段代码或者每隔一个时间执行一段SQL代码，通常会把复杂的SQL都封装成一个存储过程中，这样事件在执行的时候只需要做一个简单的CALL调用。</p>
+<p> 一些存储过程的考虑也可以同样适用于事件，创建事件意味着给服务器带来额外的工作，事件实现本身的开销不大，但是时间需要执行SQL则可能对性能有很大的影响，事件的一些典型应用包括：定期维护任务、重建缓存、构建汇总表来模拟物化视图，存储用于监控和诊断的状态值。</p>
+<ul>
+<li>注：如果一个定时事件执行需要很长的时间，那么有可能出现事件冲突情况，MySQL本身不会防止这种并发，所以用户需要自己编写这种情况防止并发代码，可以使用GET_LOCK()来确保当前只有一个事件在被执行：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">CREATE EVENT optimize_somedb ONSCHEDULE EVERY 1 WEEK</span><br><span class="line"></span><br><span class="line">DO</span><br><span class="line"></span><br><span class="line">BEGIN</span><br><span class="line"></span><br><span class="line">   DECLARE CONTINUE HANLDER FOR SQLEXCEPTOIN</span><br><span class="line"></span><br><span class="line">     BEGIN END;</span><br><span class="line"></span><br><span class="line">IF GET_LOCK(‘somedb’，0) THEN</span><br><span class="line"></span><br><span class="line">  DO CALLoptimize_tables(‘somedb’);</span><br><span class="line"></span><br><span class="line">END IF;</span><br><span class="line"></span><br><span class="line">DO RELEASE_LOCK(‘somedb’);</span><br><span class="line"></span><br><span class="line">END</span><br><span class="line"></span><br><span class="line">这里的“CONTINUE HANLDER”用来确保，即使当事件执行出现了异常，仍然会释放持有的锁。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>游标</p>
+</li>
+<li><p>绑定变量  </p>
+<ol>
+<li>使用场合<br>当查询语句的解析和执行计划生成消耗了主要的时间，那么绑定变量可以在一定程度上解决问题，因为只需要解析一次，对于大量重复类型的查询语句，<br>性能会有很大的提高。</li>
+<li>高效的原因<ol>
+<li>在服务端只需要解析一次  </li>
+<li>在服务端的某些优化器的工作只需要执行一次，因为会缓存一部分执行计划。</li>
+<li>一二进制的方式只发送参数和句柄， 比起每次都发送ASCII码文本效率高，一个二进制的日期只需要三个字节，但如果是ASCII码则需要十个字节</li>
+<li>仅仅是参数—-而不是整个查询语句—-需要发送到服务器，所以网络开销会更小。</li>
+<li>MySQL在存储参数的时候，直接将其存放在缓存中，不再需要在内存中多次复制</li>
+</ol>
+</li>
+<li>绑定变量安全性相对较高（任何时候都不要相信用户的数据，即使是绑定变量）<ol>
+<li>无需在应用程序中处理转义，操作更简便，大大减少了SQL注入和攻击的风险</li>
+</ol>
+</li>
+<li>绑定变量的优化<ol>
+<li>准备阶段<br>服务器解析SQL语句，移除不可能的条件，并且重写子查询</li>
+<li>在第一次执行的时候<br>如果可能， 服务器先简化嵌套循环的关联，并将外关联转化成内关联</li>
+<li>在每次SQL语句执行时  <ol>
+<li>过滤分区</li>
+<li>如果可能的话， 尽量移除COUNT(),MIN(),MAX()</li>
+<li>移除常量表达式</li>
+<li>检测常量表</li>
+<li>做必要的等值传播</li>
+<li>分析和优化ref、 range和索引优化等访问数据的方式</li>
+<li>优化关联顺序</li>
+</ol>
+</li>
+<li>绑定变量的限制<ol>
+<li>绑定变量是会话级别的，所以连接之间不能共用绑定句柄，一旦连接断开，原来的句柄就不能使用（连接池和持久连接一定程度上缓解这个问题）</li>
+<li>在MySQL5.1之前不能使用查询缓存</li>
+<li>如果只是执行一次SQL，那么使用绑定变量的方式无疑比直接执行多了一次额外的准备阶段消耗，还需要一次额外的网络开销</li>
+<li>如果总是忘记释放绑定变量资源，服务器很容易发生资源泄漏，绑定变量的SQL总数是一个全局限制</li>
+</ol>
+</li>
+<li>相关命令 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SET @sql := &apos;select * from `t1` where `name` = ?&apos;;</span><br><span class="line">PREPARE stmt_fetch FROM @sql;</span><br><span class="line">SET @name :=&apos;a&apos;;</span><br><span class="line">EXECUTE stmt_fetch USING @name;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>用户自定函数</p>
+</li>
+<li><p>插件</p>
+</li>
 <li><p>字符集和校对</p>
 <ol>
 <li>字符集概念<br>基本概念<ol>
@@ -126,49 +259,29 @@
 <li>SERVER-&gt;DB-&gt;TABLE-&gt;COLUMN</li>
 </ol>
 </li>
-<li>注意点  <ol>
+<li><p>注意点  </p>
+<ol>
 <li>character_set_client 字符集要和客户端字符集保持一致，否者多字节字符会出现乱码</li>
 <li>LENGTH函数和CHAR_LENGTH函数的区别LENGTH计算字符数，CHAR_LENGTH计算字节数,多字节字符这两个函数的结果会不一样</li>
 <li>字符集会影响临时表的分配UTF8字符集会按最大字节数分配就算存的全是字母，也是按每个字符三个字节分配</li>
-<li>影响索引的最长索引前缀（不同版本的MySQL最长索引前缀不同，单位按字节算） <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">create table t2 (</span><br><span class="line">    id int not null auto_increment primary key, </span><br><span class="line">    `name` varchar(1025) not null default &apos;&apos;, </span><br><span class="line">    key(`name`)</span><br><span class="line">) engine=innodb charset =utf8;</span><br><span class="line">ERROR 1071 (42000): Specified key was too long; max key length is 3072 bytes</span><br></pre></td></tr></table></figure>
+<li><p>影响索引的最长索引前缀（不同版本的MySQL最长索引前缀不同，单位按字节算）</p>
+<pre><code class="angular2html">create table t2 (
+    id int not null auto_increment primary key, 
+    `name` varchar(1025) not null default &apos;&apos;, 
+    key(`name`)
+) engine=innodb charset =utf8;
+ERROR 1071 (42000): Specified key was too long; max key length is 3072 bytes
+
+</code></pre>
 </li>
 </ol>
 </li>
 </ol>
 </li>
-<li><p>绑定变量  </p>
-<pre><code>1. 使用场合  
-当查询语句的解析和执行计划生成消耗了主要的时间，那么绑定变量可以在一定程度上解决问题，因为只需要解析一次，对于大量重复类型的查询语句，
-性能会有很大的提高。
-2. 高效的原因
-    1. 在服务端只需要解析一次  
-    2. 在服务端的某些优化器的工作只需要执行一次，因为会缓存一部分执行计划。
-    3. 一二进制的方式只发送参数和句柄， 比起每次都发送ASCII码文本效率高，一个二进制的日期只需要三个字节，但如果是ASCII码则需要十个字节
-    4. 仅仅是参数----而不是整个查询语句----需要发送到服务器，所以网络开销会更小。
-    5. MySQL在存储参数的时候，直接将其存放在缓存中，不再需要在内存中多次复制
-3. 绑定变量安全性相对较高（任何时候都不要相信用户的数据，即使是绑定变量）
-    1. 无需在应用程序中处理转义，操作更简便，大大减少了SQL注入和攻击的风险
-4. 绑定变量的优化
-    1. 准备阶段  
-    服务器解析SQL语句，移除不可能的条件，并且重写子查询
-    2. 在第一次执行的时候  
-    如果可能， 服务器先简化嵌套循环的关联，并将外关联转化成内关联
-    3. 在每次SQL语句执行时  
-        1. 过滤分区
-        2. 如果可能的话， 尽量移除COUNT(),MIN(),MAX()
-        3. 移除常量表达式
-        4. 检测常量表
-        5. 做必要的等值传播
-        6. 分析和优化ref、 range和索引优化等访问数据的方式
-        7. 优化关联顺序
-    4. 绑定变量的限制
-        1. 绑定变量是会话级别的，所以连接之间不能共用绑定句柄，一旦连接断开，原来的句柄就不能使用（连接池和持久连接一定程度上缓解这个问题）
-        2. 在MySQL5.1之前不能使用查询缓存
-        3. 如果只是执行一次SQL，那么使用绑定变量的方式无疑比直接执行多了一次额外的准备阶段消耗，还需要一次额外的网络开销
-        4. 如果总是忘记释放绑定变量资源，服务器很容易发生资源泄漏，绑定变量的SQL总数是一个全局限制
-    5. 相关命令
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SET @sql := &apos;select * from `t1` where `name` = ?&apos;;</span><br><span class="line">PREPARE stmt_fetch FROM @sql;</span><br><span class="line">SET @name :=&apos;a&apos;;</span><br><span class="line">EXECUTE stmt_fetch USING @name;</span><br></pre></td></tr></table></figure>
-</code></pre></li>
+<li>全文索引</li>
+<li>分布式事务</li>
+<li>查询缓存</li>
+<li>总结</li>
 </ol>
 </div><div class="tags"><a href="/tags/高性能MySQL/">高性能MySQL</a></div><div class="post-nav"><a class="next" href="/mysql-part6.html">查询性能优化</a></div><div id="SOHUCS" sid="1535886231000"></div><script>(function(){var appid='cytKTcg6f';var conf='prod_9a90befaebddcefc490b20caebf42468';var width=window.innerWidth||document.documentElement.clientWidth;if(width<960){window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id='+appid+'&conf='+conf+'"><\/script>')}else{var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})})}})()
 </script></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://blog.beere.cn"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/工具/" style="font-size: 15px;">工具</a> <a href="/tags/高性能MySQL/" style="font-size: 15px;">高性能MySQL</a> <a href="/tags/Redis/" style="font-size: 15px;">Redis</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/mysql-part7.html">MySQL高级特性</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part6.html">查询性能优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part5.html">创建高性能的索引</a></li><li class="post-list-item"><a class="post-list-link" href="/sort.html">排序算法总结</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part4.html">Schema 与数据类型优化</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part3.html">服务器性能剖析</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part2.html">MySQL基准测试</a></li><li class="post-list-item"><a class="post-list-link" href="/redis1.html">关于Redis</a></li><li class="post-list-item"><a class="post-list-link" href="/mysql-part1.html">MySQL架构与历史</a></li><li class="post-list-item"><a class="post-list-link" href="/gantt.html">XMind 8免费激活方法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">DGH.</a> Powered by<a rel="external nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="external nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="external nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a><br/><span class="article-traffic" id="busuanzi_container_site_pv">本站总访问量&nbsp;<span id="busuanzi_value_site_pv"></span> 次&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="article-traffic" id="busuanzi_container_site_uv">本站访客数&nbsp;<span id="busuanzi_value_site_uv"></span> 人次</span></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
