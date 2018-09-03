@@ -259,17 +259,27 @@
 <li>SERVER-&gt;DB-&gt;TABLE-&gt;COLUMN</li>
 </ol>
 </li>
-<li><p>注意点  </p>
-<ol>
+<li>注意点  <ol>
 <li>character_set_client 字符集要和客户端字符集保持一致，否者多字节字符会出现乱码</li>
 <li>LENGTH函数和CHAR_LENGTH函数的区别LENGTH计算字符数，CHAR_LENGTH计算字节数,多字节字符这两个函数的结果会不一样</li>
 <li>字符集会影响临时表的分配UTF8字符集会按最大字节数分配就算存的全是字母，也是按每个字符三个字节分配</li>
-<li><p>影响索引的最长索引前缀（不同版本的MySQL最长索引前缀不同，单位按字节算）</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">            create table t2 (</span><br><span class="line">                id int not null auto_increment primary key, </span><br><span class="line">                `name` varchar(1025) not null default &apos;&apos;, </span><br><span class="line">                key(`name`)</span><br><span class="line">            ) engine=innodb charset =utf8;</span><br><span class="line">            ERROR 1071 (42000): Specified key was too long; max key length is 3072 bytes</span><br><span class="line">            </span><br><span class="line">            ``` </span><br><span class="line">                   </span><br><span class="line">10. 全文索引</span><br><span class="line">    &gt; 作用对象:  </span><br><span class="line">    全文集合: 将需要索引的列全部拼接成一个字符串,然后进行索引.  </span><br><span class="line">    由于是对列进行拼接,因此无法设置哪一列更重要.(没有权重)  </span><br><span class="line">    实现:  </span><br><span class="line">    B-Tree索引,两层.  </span><br><span class="line">    第一层: 所有关键字;  </span><br><span class="line">    第二层: 一组相关的文档指针.  </span><br><span class="line">    全文索引不会索引文档对象中的所有词语,过滤规则如下:  </span><br><span class="line">    停用词. 默认按通用英语的使用,可以通过参数ft_stopword_file指定;  </span><br><span class="line">    长度条件. ft_min_word_len &lt;=len &lt;= ft_max_word_len.</span><br><span class="line"></span><br><span class="line">    1. 自然语言的全文索引  </span><br><span class="line">        文档对象和查询的相关度.</span><br><span class="line">        相关度= f(匹配的关键词个数,关键词在文档中出现的次数)</span><br><span class="line">    </span><br><span class="line">        原理:</span><br><span class="line">        索引中出现次数越少=&gt;相关度越高</span><br><span class="line">        常见单词=&gt;相关度低.</span><br><span class="line">        </span><br><span class="line">        创建全文索引语法:</span><br><span class="line">        ```angularjs</span><br><span class="line">        ALTER TABLE film_text ADD FULLTEXT INDEX fulltext_article(title,description);</span><br></pre></td></tr></table></figure>
-<p>自然语言搜索的查询语法: </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,Right(description,25)</span><br><span class="line">,Match(title,description) against (&apos;factor casualties&apos;) as relevance -- 相关度</span><br><span class="line">FROM film_text</span><br><span class="line">WHERE  Match(title,description) against (&apos;factor casualties&apos;)</span><br></pre></td></tr></table></figure>
+<li>影响索引的最长索引前缀（不同版本的MySQL最长索引前缀不同，单位按字节算）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">create table t2 (</span><br><span class="line">id int not null auto_increment primary key, </span><br><span class="line">`name` varchar(1025) not null default &apos;&apos;, </span><br><span class="line">key(`name`)</span><br><span class="line">) engine=innodb charset =utf8;</span><br><span class="line">ERROR 1071 (42000): Specified key was too long; max key length is 3072 bytes</span><br><span class="line">alter table t1 change `name`  `name` varchar(20) character set utf8  COLLATE utf8_bin not null default &apos;&apos;;</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
+</li>
+</ol>
+</li>
+<li><p>全文索引</p>
+<blockquote>
+<p>作用对象:<br>全文集合: 将需要索引的列全部拼接成一个字符串,然后进行索引.<br>由于是对列进行拼接,因此无法设置哪一列更重要.(没有权重)<br>实现:<br>B-Tree索引,两层.<br>第一层: 所有关键字;<br>第二层: 一组相关的文档指针.<br>全文索引不会索引文档对象中的所有词语,过滤规则如下:<br>停用词. 默认按通用英语的使用,可以通过参数ft_stopword_file指定;<br>长度条件. ft_min_word_len &lt;=len &lt;= ft_max_word_len.</p>
+</blockquote>
+<ol>
+<li><p>自然语言的全文索引<br> 文档对象和查询的相关度.<br> 相关度= f(匹配的关键词个数,关键词在文档中出现的次数)</p>
+<p> 原理:<br> 索引中出现次数越少=&gt;相关度越高<br> 常见单词=&gt;相关度低.</p>
+<p> 创建全文索引语法:</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE film_text ADD FULLTEXT INDEX fulltext_article(title,description);</span><br></pre></td></tr></table></figure>
+<p> 自然语言搜索的查询语法: </p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,Right(description,25)</span><br><span class="line">,Match(title,description) against (&apos;factor casualties&apos;) as relevance -- 相关度</span><br><span class="line">FROM film_text</span><br><span class="line">WHERE  Match(title,description) against (&apos;factor casualties&apos;)</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
 </li>
