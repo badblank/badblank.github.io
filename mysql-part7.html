@@ -297,6 +297,7 @@
    查询语法:
     <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,right(description,25)</span><br><span class="line">FROM film_text</span><br><span class="line">where match(title,description)</span><br><span class="line">Against(&apos;+factory +casualties&apos; In Boolean Mode);</span><br><span class="line">-- title拼接description后必须同时包含factory和casualties</span><br></pre></td></tr></table></figure>
 
+
 3. 插件和限制  
     可以加入插件改变:
     1. 分词方式(如C++);
