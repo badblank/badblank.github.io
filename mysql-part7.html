@@ -275,62 +275,73 @@
 </blockquote>
 <ol>
 <li><p>自然语言的全文索引<br> 文档对象和查询的相关度.<br> 相关度= f(匹配的关键词个数,关键词在文档中出现的次数)</p>
-<p> 原理:<br> 索引中出现次数越少=&gt;相关度越高<br> 常见单词=&gt;相关度低.</p>
-<p> 创建全文索引语法:</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE film_text ADD FULLTEXT INDEX fulltext_article(title,description);</span><br></pre></td></tr></table></figure>
-<p> 自然语言搜索的查询语法: </p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,Right(description,25)</span><br><span class="line">,Match(title,description) against (&apos;factor casualties&apos;) as relevance -- 相关度</span><br><span class="line">FROM film_text</span><br><span class="line">WHERE  Match(title,description) against (&apos;factor casualties&apos;)</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>原理:<br>索引中出现次数越少=&gt;相关度越高<br>常见单词=&gt;相关度低.</p>
+</li>
+<li><p>创建全文索引语法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE film_text ADD FULLTEXT INDEX fulltext_article(title,description);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>自然语言搜索的查询语法: </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,Right(description,25)</span><br><span class="line">,Match(title,description) against (&apos;factor casualties&apos;) as relevance -- 相关度</span><br><span class="line">FROM film_text</span><br><span class="line">WHERE  Match(title,description) against (&apos;factor casualties&apos;)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>执行计划: Mysql将搜索词语分为两个独立的关键词进行搜索. (factory和casualties)  </li>
+<li>搜索对象: title和description组成的列的全文索引.</li>
+</ul>
+</li>
+<li><p>布尔全文索引</p>
+<ul>
+<li>编写布尔搜索查询时,可以通过一些前缀修饰符来定制搜索.<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">dino: 包含dino的行rank更高;</span><br><span class="line">~dino: 包含dino的行rank更低;</span><br><span class="line">+dino: 行记录必须包含dino;</span><br><span class="line">-dino: 行记录不能包含dino;</span><br><span class="line">dino*: 以dino开头的行rank更高.</span><br><span class="line">本例中dino作为搜索词可能太短,其实太短的词并不会被全文索引,查询优化器也可能要求搜索词&gt;=ft_min_word_len.</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li>查询语法:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,right(description,25)</span><br><span class="line">FROM film_text</span><br><span class="line">where match(title,description)</span><br><span class="line">Against(&apos;+factory +casualties&apos; In Boolean Mode);</span><br><span class="line">-- title拼接description后必须同时包含factory和casualties</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>插件和限制<br> 可以加入插件改变:</p>
+<ol>
+<li>分词方式(如C++);</li>
+<li><p>预处理(如PDF).</p>
+<p>Mysql全文索引判断相关性的方法: 词频;<br>限制:</p>
+</li>
+<li>全文索引能全部load到内存时,才能快.</li>
+<li>判断相关性只有词频,没有顺序;</li>
+<li>优化器会优先使用全文索引,而不管是否有其他更优索引, 并且全文索引会在其他索引之前使用.</li>
+<li><p>碎片多.</p>
+<blockquote>
+<p>Sphinx + Mysql + SphinxSE (附录F)<br>Sphinx: 开源全文搜索引擎. 可将数据源配置为Mysql查询的结果. 可水平扩展.<br>SphinxSE: Mysql的Sphinx插件,以便支持将Sphinx的搜索结果和Mysql的表进行join.</p>
+</blockquote>
+<p>Sphinx性能:  </p>
+</li>
+</ol>
+<ul>
+<li>查询1GB时间: 10~100ms;</li>
+<li><p>单CPU处理能力:10~100GB.</p>
+<p>分布式搜索工作流程:</p>
+</li>
+</ul>
+<ol>
+<li>向所有服务器发送远程查询;</li>
+<li>执行本地索引搜索;</li>
+<li>从每个服务器读取部分搜索结果;</li>
+<li><p>合并结果返回客户端.</p>
+<p>架构  </p>
+</li>
+</ol>
+<ul>
+<li>Indexed<br>从不同数据源创建全文索引.作为后台任务,一般定时运行;</li>
+<li><p>Searchd<br>运行时服务于客户端,查询创建好的索引.<br>SphinxSE可插拔存储引擎</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">建表语法:</span><br><span class="line">create table search_table</span><br><span class="line">(id int not null</span><br><span class="line">,weight int not null</span><br><span class="line">,query varchar(3070) not null</span><br><span class="line">,group_id int</span><br><span class="line">,INDEX(query)</span><br><span class="line">) engine=Spinx conncet=&quot;sphinx://localhost:3312/test&quot;</span><br><span class="line"></span><br><span class="line">查询语法:(把查询藏在query里,传递给sphinx)</span><br><span class="line">select * from search_table where query=&apos;test;mode=all&apos;;</span><br><span class="line">Searchd服务返回查询结果,存储引擎把数据转换成mysql表.</span><br></pre></td></tr></table></figure>
+<p><a href="https://zhuanlan.zhihu.com/p/21334385" target="_blank" rel="noopener">与ElasticSearch比较</a></p>
+</li>
+</ul>
 </li>
 </ol>
 </li>
 </ol>
-<pre><code>    * 执行计划: Mysql将搜索词语分为两个独立的关键词进行搜索. (factory和casualties)
-    * 搜索对象: title和description组成的列的全文索引.
-
-2. 布尔全文索引
-    * 编写布尔搜索查询时,可以通过一些前缀修饰符来定制搜索.
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">dino: 包含dino的行rank更高;</span><br><span class="line">~dino: 包含dino的行rank更低;</span><br><span class="line">+dino: 行记录必须包含dino;</span><br><span class="line">-dino: 行记录不能包含dino;</span><br><span class="line">dino*: 以dino开头的行rank更高.</span><br><span class="line">本例中dino作为搜索词可能太短,其实太短的词并不会被全文索引,查询优化器也可能要求搜索词&gt;=ft_min_word_len.</span><br></pre></td></tr></table></figure>
-
-   * 查询语法:
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">select film_id,title,right(description,25)</span><br><span class="line">FROM film_text</span><br><span class="line">where match(title,description)</span><br><span class="line">Against(&apos;+factory +casualties&apos; In Boolean Mode);</span><br><span class="line">-- title拼接description后必须同时包含factory和casualties</span><br></pre></td></tr></table></figure>
-
-3. 插件和限制  
-    可以加入插件改变:
-    1. 分词方式(如C++);
-    2. 预处理(如PDF).
-
-    Mysql全文索引判断相关性的方法: 词频;  
-    限制:
-    1. 全文索引能全部load到内存时,才能快.
-    2. 判断相关性只有词频,没有顺序;
-    3. 优化器会优先使用全文索引,而不管是否有其他更优索引, 并且全文索引会在其他索引之前使用.
-    4. 碎片多.
-
-    &gt; Sphinx + Mysql + SphinxSE (附录F)  
-    Sphinx: 开源全文搜索引擎. 可将数据源配置为Mysql查询的结果. 可水平扩展.  
-    SphinxSE: Mysql的Sphinx插件,以便支持将Sphinx的搜索结果和Mysql的表进行join.
-
-    Sphinx性能:  
-    * 查询1GB时间: 10~100ms;
-    * 单CPU处理能力:10~100GB.
-
-    分布式搜索工作流程:
-    1. 向所有服务器发送远程查询;
-    2. 执行本地索引搜索;
-    3. 从每个服务器读取部分搜索结果;
-    4. 合并结果返回客户端.
-
-    架构  
-    * Indexed  
-    从不同数据源创建全文索引.作为后台任务,一般定时运行;
-    * Searchd  
-    运行时服务于客户端,查询创建好的索引.
-    SphinxSE可插拔存储引擎
-
-    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">建表语法:</span><br><span class="line">create table search_table</span><br><span class="line">(id int not null</span><br><span class="line">,weight int not null</span><br><span class="line">,query varchar(3070) not null</span><br><span class="line">,group_id int</span><br><span class="line">,INDEX(query)</span><br><span class="line">) engine=Spinx conncet=&quot;sphinx://localhost:3312/test&quot;</span><br><span class="line"></span><br><span class="line">查询语法:(把查询藏在query里,传递给sphinx)</span><br><span class="line">select * from search_table where query=&apos;test;mode=all&apos;;</span><br><span class="line">Searchd服务返回查询结果,存储引擎把数据转换成mysql表.</span><br></pre></td></tr></table></figure>
-
-[与ElasticSearch比较](https://zhuanlan.zhihu.com/p/21334385)
-</code></pre><ol start="11">
+<ol start="11">
 <li>分布式事务</li>
 <li>查询缓存</li>
 <li>总结</li>
